@@ -36,7 +36,7 @@ class RequestHandler(tornado.web.RequestHandler):
         data = json.loads(self.request.body)
         if handler is None:
             self.write_error(400, 'Invalid opcode: %s' % opcode)
-            self.finish()
+            return
         try:
             handler(data)
         except Exception as e:
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     logger = logging.getLogger('app_server')
     opts = dict(logger=logger)
 
-    application = tornado.web.Application([(r'/(.+)', RequestHandler, opts)])
+    application = tornado.web.Application([(r'/app/(.+)', RequestHandler, opts)])
 
     logger.info('Ready to serve. (port: %s)' % port)
 
