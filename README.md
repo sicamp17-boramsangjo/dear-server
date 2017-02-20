@@ -95,14 +95,7 @@
 ##### Response
 | property | type |
 |---|---|
-| userName | O | string |
-| phoneNumber | O | string |
-| birthDay | O | timestamp |
-| deviceToken | X | string |
-| profileImageUrl | X | string |
-| pushDuration | X | timestamp |
-| lastLoginAlarmDuration | x | timestamp |
-
+| result | [UserInfo](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#user) |
 
 ## 푸시메시지 설정
 
@@ -163,7 +156,7 @@
 ##### Response
 | property | type |
 |---|---|
-| receivers | `[Receiver]` |
+| receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 
 
 
@@ -181,7 +174,7 @@
 |----|----|
 |questionID | string |
 |question | string |
-|previousAnsers | `[Answer]`|
+|previousAnsers | [[Answer](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#answer)]|
 
 ### app/uploadImage
 이미지 파일을 멀티파트로 업로드한다.
@@ -220,7 +213,7 @@
 | answerText | X | string |
 | answerPhoto | X | string |
 | answerVideo | X | string |
-| receivers | X | `[receiverID:String]` |
+| receivers | X | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 | lastUpdate | O | timestamp |
 
 ##### Response
@@ -256,7 +249,7 @@
 ##### Response
 | property | type |
 |----|----|
-| result | `[WIllItem]` |
+| results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
 
 
 
@@ -290,7 +283,7 @@
 | answerPhoto | string |
 | anwserVideo | string |
 | lastUpdate | timestamp |
-| receivers | `[receiverID:String]` |
+| receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 
 ## Question
 | property | type |
@@ -303,5 +296,5 @@
 |---|---|
 | willItemID | string |
 | questionID | string |
-| anwsers | `[anwserID:String]` |
+| anwsers | [[Answer](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#answer)] |
 | lastUpdate | timestamp |
