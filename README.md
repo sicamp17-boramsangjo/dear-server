@@ -1,4 +1,8 @@
-# Dear API list
+# Dear API document 
+* [API Spec](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#dear-api-list)
+* [API Response model](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#response-model)
+
+# Dear API spec
 
 * request/response type: `application/JSON`
 * HTTP method: `POST`
