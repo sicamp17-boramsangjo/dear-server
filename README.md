@@ -170,11 +170,10 @@
 | sessionToken | O | string |
 
 ##### Response
-| property | type |
-|----|----|
-|questionID | string |
-|question | string |
-|previousAnsers | [[Answer](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#answer)]|
+| property | NonOptional | type |
+|----|----|----|
+|question | O | [Question](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#question) |
+|willItem | X | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
 
 ### app/uploadImage
 이미지 파일을 멀티파트로 업로드한다.
@@ -277,6 +276,8 @@
 | deviceToken | string |
 | profileImageUrl | string |
 | pushDuration | timestamp |
+| todaysQuestionID | string |
+| todaysQuestionSetTime | timestamp |
 | lastLoginAlarmDuration | timestamp |
 | receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 
