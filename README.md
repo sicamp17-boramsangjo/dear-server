@@ -154,21 +154,6 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 }
 ```
 
-## 푸시메시지 설정
-
-### app/setDeviceToken
-푸시메시지를 보내기 위해 필요한 `DeviceToken` 값을 업데이트한다. 앱 프로세스 시작 직후 무조건 1회 실행된다.
-##### Request
-| property | required | type |
-|---|---|---|
-| sessionToken | O | string |
-| deviceToken | O | string |
-
-##### Response
-| property | type |
-|---|---|
-| resultCode | int |
-
 
 ## 유언 받을 사람 관리
 
