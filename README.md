@@ -13,17 +13,44 @@
 신규 가입하는 회원을 등록한다.
 
 ##### Request
-| property | required | type |
-|---|---|---|
-| userName | O | string |
-| phoneNumber | O | string |
-| password | O | string |
-| birthDay | O | timestamp |
+| property | required | type | format |
+|---|---|---|---|
+| userName | O | string | - |
+| phoneNumber | O | string | `01D-DDD-DDDD` |
+| password | O | string | - |
+| birthDay | O | timestamp | seconds |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/createUser -H 'Content-Type: Application/json' -d '
+{
+	"userName": "sjkim",
+	"phoneNumber": "010-1234-7214",
+	"password":	"sjsj!",
+	"birthDay": 498841200
+}
+'
+```
 
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK",
+  "sessionToken": "58ac500abf825f120f773d22"
+}
+
+# Failed (Already exist)
+{
+  "status": 200,
+  "msg": "Phone number 010-1234-7214 is already exist",
+  "userid": null
+}
+```
 
 ### app/login
 기존 회원이 로그인한다.
@@ -92,10 +119,40 @@
 |---|---|---|
 | sessionToken | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Application/json' -d '
+{
+	"sessionToken": "58ac500abf825f120f773d22"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | result | [UserInfo](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#user) |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK",
+  "user": {
+    "userName": "sjkim",
+    "passwd": "010-1234-1214",
+    "_id": "58ac500abf825f120f773d22",
+    "phoneNumber": "010-1234-1214",
+    "birthDay": 498841200
+  }
+}
+
+# Not existing user
+{
+  "status": 200,
+  "msg": "Not exist",
+  "user": null
+}
+```
 
 ## 푸시메시지 설정
 
