@@ -251,6 +251,18 @@
 |----|----|
 | results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
 
+### getWIllItems
+##### Request
+| property | required | type |
+|---|---|---|
+| sessionToken | O | string |
+| willItemID | O | string |
+
+##### Response
+| property | type |
+|----|----|
+| result | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
+
 
 
 
