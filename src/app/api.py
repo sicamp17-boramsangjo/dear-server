@@ -62,7 +62,7 @@ class RequestHandler(tornado.web.RequestHandler):
             return False
 
     def is_valid_phone_num(self, phone_num):
-        if isinstance(phone_num, str) and re.match('^01\d-\d{4}-\d{4}$', phone_num):
+        if re.match('^01\d-\d{4}-\d{4}$', phone_num):
             return True
         else:
             return False
@@ -78,21 +78,24 @@ class RequestHandler(tornado.web.RequestHandler):
 
     @tornado.gen.coroutine
     def create_user(self, data):
-        if not self.is_valid_ts(data['birthDay']):
-            self.write({'status': 400, 'msg': 'Invalid birthDay value: %s' % str(data['birthDay'])})
-        elif not self.is_valid_phone_num(data['phoneNumber']):
-            self.write({'status': 400, 'msg': 'Invalid phone number format: %s (should be 01X-XXXX-XXXX)' % str(data['phoneNumber'])})
-        elif self.is_existing_user(data['phoneNumber']):
-            self.write({'status': 200, 'msg': 'Phone number %s is already exist' % data['phoneNumber'], 'userid': None})
-        else:
-            record = {'userName': data['userName'],
-                      'phoneNumber': data['phoneNumber'],
-                      'passwd': data['phoneNumber'],
-                      'birthDay': data['birthDay'],
-                      }
-            users = DB.users
-            user_id = users.insert_one(record)
-            self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
+        try:
+            if not self.is_valid_ts(data['birthDay']):
+                self.write({'status': 400, 'msg': 'Invalid birthDay value: %s' % str(data['birthDay'])})
+            elif not self.is_valid_phone_num(data['phoneNumber']):
+                self.write({'status': 400, 'msg': 'Invalid phone number format: %s (should be 01X-XXXX-XXXX)' % str(data['phoneNumber'])})
+            elif self.is_existing_user(data['phoneNumber']):
+                self.write({'status': 200, 'msg': 'Phone number %s is already exist' % data['phoneNumber'], 'userid': None})
+            else:
+                record = {'userName': data['userName'],
+                          'phoneNumber': data['phoneNumber'],
+                          'passwd': data['phoneNumber'],
+                          'birthDay': data['birthDay'],
+                          }
+                users = DB.users
+                user_id = users.insert_one(record)
+                self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
+        except Exception as e:
+            self.write({'status': 500, 'msg': str(e)})
         self.finish()
 
     @tornado.gen.coroutine
