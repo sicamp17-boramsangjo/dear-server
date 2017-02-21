@@ -266,7 +266,7 @@
 | profileImageUrl | string |
 | pushDuration | timestamp |
 | lastLoginAlarmDuration | timestamp |
-
+| receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 
 ## Receiver
 | property | type |
@@ -283,7 +283,7 @@
 | answerPhoto | string |
 | anwserVideo | string |
 | lastUpdate | timestamp |
-| receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
+| receiverIDs | [receiverID] |
 
 ## Question
 | property | type |
