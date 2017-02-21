@@ -296,5 +296,6 @@
 |---|---|
 | willItemID | string |
 | questionID | string |
+| question | string |
 | anwsers | [[Answer](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#answer)] |
 | lastUpdate | timestamp |
