@@ -251,7 +251,7 @@
 |----|----|
 | results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
 
-### getWIllItems
+### getWIllItem
 ##### Request
 | property | required | type |
 |---|---|---|
