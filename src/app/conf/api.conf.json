@@ -1,0 +1,12 @@
+{
+    "fields": {
+        "createUser": {
+            "required": ["userName", "phoneNumber", "password", "birthDay"],
+            "allowed": []
+        },
+        "getUserInfo": {
+            "required": ["sessionToken"],
+            "allowed": []
+        }
+    }
+}

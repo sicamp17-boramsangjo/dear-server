@@ -18,38 +18,39 @@ enable_pretty_logging()
 
 
 class RequestHandler(tornado.web.RequestHandler):
-    def initialize(self, logger):
+    def initialize(self, logger, config_fname):
         self.logger = logger
+        self.opt = json.load(open(config_fname))
         self.post_book = {
-            'createUser': (self.create_user, {'userName', 'phoneNumber', 'password', 'birthDay'}),
-            'getUserInfo': (self.get_user_info, {'sessionToken'}),
-            'addWillItem': (self.add_willitem, {}),
-            'getWillItem': (self.get_willitem, {}),
-            'addQuestion': (self.add_question, {}),
-            'getQuestion': (self.get_question, {}),
-            'listQuestions': (self.list_questions, {}),
+            'createUser': self.create_user,
+            'getUserInfo': self.get_user_info,
         }
+        for k, f in self.post_book.iteritems():
+            self.post_book[k] = (f, set(self.opt['fields'][k]['required']), set(self.opt['fields'][k]['allowed']))
 
     @tornado.gen.coroutine
     def write_error(self, code, msg):
         self.write({'status': code, 'msg': msg})
         self.finish()
 
-    def get_missing_fields(self, data, fields):
-        return fields - set(data.keys())
+    def check_fields(self, data, required, allowed):
+        query_fields = set(data.keys())
+        return required - query_fields, query_fields - (allowed | required)
 
     @tornado.gen.coroutine
     def post(self, opcode):
         try:
             self.set_header('Content-Type', 'application/json')
-            handler, required_fields = self.post_book.get(opcode, (None, None))
+            handler, required_fields, allowed_fields = self.post_book.get(opcode, (None, None, None))
             self.logger.info('Query: %s' % self.request.body)
             data = json.loads(self.request.body)
-            if handler is None or required_fields is None:
+            if handler is None or required_fields is None or allowed_fields is None:
                 self.write_error(400, 'Invalid opcode: %s' % opcode)
-            missing_fields = self.get_missing_fields(data, required_fields)
+            missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
             if len(missing_fields) > 0:
                 self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
+            elif len(not_allowed_fields) > 0:
+                self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
             else:
                 handler(data)
         except Exception as e:
@@ -91,13 +92,13 @@ class RequestHandler(tornado.web.RequestHandler):
             else:
                 record = {'userName': data['userName'],
                           'phoneNumber': data['phoneNumber'],
-                          'passwd': data['phoneNumber'],
+                          'password': data['password'],
                           'birthDay': data['birthDay'],
                           }
                 users = DB.users
                 user_id = users.insert_one(record)
                 self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
-            self.finish()
+                self.finish()
         except Exception as e:
             self.write_error(500, str(e))
 
@@ -114,47 +115,6 @@ class RequestHandler(tornado.web.RequestHandler):
         except Exception as e:
             self.write_error(500, str(e))
 
-    @tornado.gen.coroutine
-    def add_willitem(self, data):
-        self.write({'status': 200, 'msg': 'OK', 'willitem_id': 'zzz'})
-        self.finish()
-
-    @tornado.gen.coroutine
-    def get_willitem(self, data):
-        willitem = {'question_id': 'q123',
-                    'question_text': '가장 좋아하는 음식은?',
-                    'size': 2,
-                    'regts': 14207204749,
-                    'modts': 14539543894,
-                    'thread': [
-                        {'thread_id': 1,
-                         'regts': 14030812730,
-                         'text': '떡볶이'
-                        },
-                        {'thread_id': 2,
-                         'regts': 14040812730,
-                         'text': '나이가 들어보니, 김치찌개가 참 좋더라'
-                        },
-                        ]
-                    }
-        self.write({'status': 200, 'msg': 'OK', 'willitem': willitem})
-        self.finish()
-
-    @tornado.gen.coroutine
-    def add_question(self, data):
-        self.write({'status': 200, 'msg': 'OK', 'question_id': 'q123'})
-        self.finish()
-
-    @tornado.gen.coroutine
-    def get_question(self, data):
-        self.write({'status': 200, 'msg': 'OK', 'question': {}})
-        self.finish()
-
-    @tornado.gen.coroutine
-    def list_questions(self, data):
-        self.write({'status': 200, 'msg': 'OK', 'list': []})
-        self.finish()
-
 
 if __name__ == "__main__":
     global SVR
@@ -164,11 +124,19 @@ if __name__ == "__main__":
     port = sys.argv[1]
     logging.basicConfig(format='%(asctime)-15s %(message)s')
     LOGGER = logging.getLogger('app_server')
-    opts = dict(logger=LOGGER)
+    opts = dict(logger=LOGGER, config_fname='./conf/api.conf.json')
 
     client = pymongo.MongoClient()
-    DB = client.test_database
-    # DB = client.real_database
+    if len(sys.argv) < 3:
+        database_name = 'test_database'
+        # database_name = 'real_database'
+    elif sys.argv[2] == 'test':
+        database_name = 'unittest_database'
+    else:
+        raise Exception('Invalid argument:' % sys.argv[2])
+
+    LOGGER.info('Use database: %s' % database_name)
+    DB = client[database_name]
 
     application = tornado.web.Application([(r'/app/(.+)', RequestHandler, opts)])
 
