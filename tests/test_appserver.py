@@ -12,6 +12,7 @@ def delete_all_items_from_test_db():
     client = pymongo.MongoClient()
     db = client.unittest_database
     result = db.users.delete_many({})
+    result = db.questions.delete_many({})
     print '%s items deleted from unittest_database.users' % int(result.deleted_count)
 
 
@@ -67,3 +68,21 @@ class AppServerTest(unittest.TestCase):
         invalid_data = {"userName": u"김철수", "phoneNumber": u"010-8274-7788", "password": u"sjsj!", "birthDay": 49881200, "friendName": u'김영희'}
         r = requests.post(url_create, data=json.dumps(invalid_data)).json()
         self.assertTrue(r['status'] == 400)
+
+    def test01(self):
+        '''
+        question creating & checking
+        '''
+        url = self.url_root + 'addQuestion'
+        data1 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r1 = requests.post(url, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        url = self.url_root + 'getQuestion'
+        data2 = {"questionId": r1['questionId']}
+        r2 = requests.post(url, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+        self.assertTrue(r2['question']['_id'] == r1['questionId'])
+        self.assertTrue(r2['question']['text'] == data1['text'])
+
+

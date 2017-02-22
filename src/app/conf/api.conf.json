@@ -7,6 +7,19 @@
         "getUserInfo": {
             "required": ["sessionToken"],
             "allowed": []
+        },
+        "addQuestion": {
+            "required": ["text"],
+            "allowed": []
+        },
+        "getQuestion": {
+            "required": ["questionId"],
+            "allowed": []
+        }
+    },
+    "settings": {
+        "user": {
+            "pushDuration": 31536000
         }
     }
 }
