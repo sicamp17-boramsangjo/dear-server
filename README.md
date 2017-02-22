@@ -6,7 +6,12 @@
 
 * request/response type: `application/JSON`
 * HTTP method: `POST`
-
+* response status
+  - `200`: 정상 종료
+  - `400`: 서버는 정상 작동함. but, request를 잘못했거나 request 의도대로 실행할 수 없는 경우
+    - 예) 전화번호 포맷이 틀렸다거나, 유저 생성을 하려고 했는데 이미 등록이 되었거나
+  - `500`: 서버 내부 에러. 서버 담당자에게 연락해야 함.
+  
 ## 회원 가입/업데이트/탈퇴
 
 ### app/createUser
@@ -153,21 +158,6 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
   "user": null
 }
 ```
-
-## 푸시메시지 설정
-
-### app/setDeviceToken
-푸시메시지를 보내기 위해 필요한 `DeviceToken` 값을 업데이트한다. 앱 프로세스 시작 직후 무조건 1회 실행된다.
-##### Request
-| property | required | type |
-|---|---|---|
-| sessionToken | O | string |
-| deviceToken | O | string |
-
-##### Response
-| property | type |
-|---|---|
-| resultCode | int |
 
 
 ## 유언 받을 사람 관리
