@@ -205,7 +205,68 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 |---|---|
 | receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 
+## 질문 추가 / 조회
 
+### app/addQuestion
+
+##### Request
+| property | required | type |
+|---|---|---|
+| text | O | string |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/addQuestion -H 'Content-Type: Application/json' -d '
+{
+    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"
+}
+'
+```
+
+##### Response
+| property | NonOptional | type |
+|----|----|----|
+| questionId | O | string |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "questionId": "58adbae4bf825f3ceca53ca6"
+}
+```
+
+### app/getQuestion
+
+##### Request
+| property | required | type |
+|---|---|---|
+| questionId | O | string |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Application/json' -d '
+{
+	"questionId": "58adb8b2bf825f3c04f4d319"
+}
+'
+```
+
+##### Response
+| property | NonOptional | type |
+|----|----|----|
+| questionId | O | string |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "question": {
+    "answered": 0,
+    "_id": "58adb8b2bf825f3c04f4d319",
+    "question": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
+    "registeredTime": 1487780018
+  }
+}
+```
 
 ## 유언 생성/삭제
 
