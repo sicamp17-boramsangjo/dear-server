@@ -343,6 +343,8 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
 
 ### app/createAnswer
 유언 질문에 대한 답변을 생성한다.
+- 유저가 이미 답변했던 질문이면 그 전에 만들어졌던 willitem에 추가함.
+- 전에 답변한적 없는 질문이면 새로운 willitem이 만들어짐. willitemID는 questionID와 동일함.
 
 ##### Request
 | property | required | type |
