@@ -16,6 +16,7 @@
 
 ### app/createUser
 신규 가입하는 회원을 등록한다.
+- **주의사항**: 유저를 생성하기 전에 반드시 1개 이상의 등록된 질문이 존재해야 함. ([질문등록](https://github.com/sicamp17-boramsangjo/server#appaddquestion))
 
 ##### Request
 | property | required | type | format |
@@ -144,10 +145,20 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
   "msg": "OK",
   "user": {
     "userName": "sjkim",
-    "passwd": "010-1234-1214",
-    "_id": "58ac500abf825f120f773d22",
-    "phoneNumber": "010-1234-1214",
-    "birthDay": 498841200
+    "_id": "58ae628ebf825f4bb046dd24",
+    "receivers": [],
+    "pushDuration": 31536000,
+    "todaysQuestion": {
+      "questionId": "58ac500abf825f120f773d22",
+      "deliveredAt": 1487823502
+    },
+    "profileImageUrl": "",
+    "birthDay": 49881200,
+    "phoneNumber": "011-1274-5313",
+    "lastLoginTime": 1487823502,
+    "willitems": {},
+    "password": "sjsj!",
+    "deviceToken": ""
   }
 }
 
@@ -217,7 +228,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/addQuestion -H 'Content-Type: Application/json' -d '
 {
-    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"
+  "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"
 }
 '
 ```
@@ -277,11 +288,32 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Appli
 |---|---|---|
 | sessionToken | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type: Application/json' -d '
+{
+  "sessionToken": "58ae628ebf825f4bb046dd24"
+}
+'
+```
+
 ##### Response
 | property | NonOptional | type |
 |----|----|----|
 |question | O | [Question](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#question) |
 |willItem | X | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "question": {
+    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
+    "questionId": "58ae5b08bf825f489ae9ff86",
+    "deliveredAt": 1487823502,
+    "answered": 0
+  }
+}
+```
 
 ### app/uploadImage
 이미지 파일을 멀티파트로 업로드한다.
