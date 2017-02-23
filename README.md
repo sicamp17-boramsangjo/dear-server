@@ -57,6 +57,20 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createUser -H 'Content-Type: Applic
 }
 ```
 
+### app/checkAlreadyJoin
+파라미터로 전달된 전화번호로 이미 가입된 사용자가 있는지 검사한다.
+
+##### Request
+| property | required | type | format |
+|---|---|---|
+| phoneNumber | O | string | `01D-DDD-DDDD` |
+
+##### Response
+| property | type |
+|---|---|
+| result | bool |
+
+
 ### app/login
 기존 회원이 로그인한다.
 앱 프로세스 시작시마다 호출되며, 해당 API가 호출될 떄마다 lastLoginTime이 갱신된다.
@@ -286,7 +300,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 
 ## 유언 조회
 
-### getWIllItems
+### app/getWIllItems
 ##### Request
 | property | required | type |
 |---|---|---|
@@ -297,7 +311,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 |----|----|
 | results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
 
-### getWIllItem
+### app/getWIllItem
 ##### Request
 | property | required | type |
 |---|---|---|
@@ -310,6 +324,21 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 | result | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
 
 
+## 사후에 다른 사람이 유언 읽기
+
+### app/getSessionTokenForReadOnly
+죽은 사람의 유언을 다른 사람이 읽을 때, 죽은 사람의 유저ID와 생년월일로 죽은 사람의 SessionToken을 얻을 수 있음.
+
+##### Request
+| property | required | type |
+|---|---|---|
+| userID | O | string |
+| birthDay | O | string |
+
+##### Response
+| property | type |
+|----|----|
+| sessionToken | string |
 
 
 # Response model
