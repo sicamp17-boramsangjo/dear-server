@@ -15,6 +15,10 @@
         "getQuestion": {
             "required": ["questionId"],
             "allowed": []
+        },
+        "getTodaysQuestion": {
+            "required": ["sessionToken"],
+            "allowed": []
         }
     },
     "settings": {

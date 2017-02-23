@@ -27,6 +27,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'getUserInfo': self.get_user_info,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
+            'getTodaysQuestion': self.get_todays_question,
         }
         for k, f in self.post_book.iteritems():
             self.post_book[k] = (f, set(self.opt['fields'][k]['required']), set(self.opt['fields'][k]['allowed']))
@@ -86,6 +87,10 @@ class RequestHandler(tornado.web.RequestHandler):
     def find_question(self, question_key):
         return DB.questions.find_one({'_id': ObjectId(question_key)})
 
+    def get_random_question(self):
+        # not random yet...
+        return DB.questions.find_one({})
+
     @tornado.gen.coroutine
     def create_user(self, data):
         try:
@@ -97,6 +102,10 @@ class RequestHandler(tornado.web.RequestHandler):
                 self.write_error(400, 'The phone number is already exist')
             else:
                 now_ts = int(time.time())
+                todays_question = self.get_random_question()
+                if not todays_question:
+                    self.write_error(400, 'Failed to get todays question')
+                    return
                 record = {'userName': data['userName'],
                           'phoneNumber': data['phoneNumber'],
                           'password': data['password'],
@@ -107,9 +116,9 @@ class RequestHandler(tornado.web.RequestHandler):
                           'willitems': {},
                           'receivers': [],
                           'lastLoginTime': now_ts,
-                          'todayQuestion': {
-                              "questionId": "58adb5a5bf825f3ae500ac41",
-                              "deliveredAt": now_ts
+                          'todaysQuestion': {
+                              'questionId': str(todays_question['_id']),
+                              'deliveredAt': now_ts
                               }
                           }
                 users = DB.users
@@ -155,6 +164,27 @@ class RequestHandler(tornado.web.RequestHandler):
                 self.write({'status': 200, 'msg': 'OK', 'question': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'question': None})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def get_todays_question(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            if user:
+                question = self.find_question(user['todaysQuestion']['questionId'])
+                if question:
+                    record = {'text': question['text'],
+                              'answered': question['answered'],
+                              'questionId': str(question['_id']),
+                              'deliveredAt': user['todaysQuestion']['deliveredAt'],
+                              }
+                    self.write({'status': 200, 'msg': 'OK', 'question': record})
+                else:
+                    self.write({'status': 400, 'msg': 'Failed to find todaysQuestion', 'question': None})
+            else:
+                self.write({'status': 400, 'msg': 'Invalid seesionToken', 'question': None})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))

@@ -7,30 +7,37 @@ import pymongo
 import requests
 
 
-def delete_all_items_from_test_db():
+def delete_all_items_from_test_db(db_name='unittest_database'):
+    assert 'test' in db_name
     print 'Delete all documents from unittest-db'
     client = pymongo.MongoClient()
-    db = client.unittest_database
+    db = client[db_name]
     result = db.users.delete_many({})
+    print '%s items deleted from %s.users' % (int(result.deleted_count), db_name)
     result = db.questions.delete_many({})
-    print '%s items deleted from unittest_database.users' % int(result.deleted_count)
+    print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
 
 
 class AppServerTest(unittest.TestCase):
     url_root = 'http://indiweb08.cafe24.com:23233/app/'
 
     @classmethod
-    def setUpClass(self):
+    def setUp(self):
         delete_all_items_from_test_db()
 
     @classmethod
-    def tearDownClass(self):
+    def tearDown(self):
         delete_all_items_from_test_db()
 
     def test00(self):
         '''
         user creating & checking
         '''
+        url = self.url_root + 'addQuestion'
+        data1 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r1 = requests.post(url, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
         data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
         url_create = self.url_root + 'createUser'
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
@@ -46,7 +53,6 @@ class AppServerTest(unittest.TestCase):
             for f in ['userName', 'password', 'phoneNumber', 'birthDay']:
                 self.assertTrue(ret['status'] == 200)
                 self.assertTrue(dd[f] == ret['user'][f])
-        print 'aaa'
 
         # duplicate phone number
         dupled_data = {"userName": u"artemis", "phoneNumber": u"010-1274-1352", "password": u"38fjfij1", "birthDay": 149881200}
@@ -86,3 +92,22 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r2['question']['text'] == data1['text'])
 
 
+    def test02(self):
+        '''
+        today's question
+        '''
+        url = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        url_today = self.url_root + 'getTodaysQuestion'
+        data2 = {"sessionToken": r1['sessionToken']}
+        r2 = requests.post(url_today, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+        self.assertTrue('question' in r2)
