@@ -193,9 +193,9 @@ class RequestHandler(tornado.web.RequestHandler):
                         '$set': recordUpdated
                     }
                 )
-                self.write({'status': 200, 'msg': 'OK', 'resultCode': 1}) # FIXME resultCode
+                self.write({'status': 200, 'msg': 'OK'})
             else:
-                self.write({'status': 400, 'msg': 'Not exist', 'resultCode': 0}) # FIXME resultCode
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))

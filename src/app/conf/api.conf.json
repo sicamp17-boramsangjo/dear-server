@@ -18,7 +18,7 @@
         },
         "updateUserInfo": {
             "required": ["sessionToken"],
-            "allowed": []
+            "allowed": ["pushDuration", "lastLoginAlarmDuration", "profileImageUrl"]
         },
         "addQuestion": {
             "required": ["text"],
