@@ -4,6 +4,10 @@
             "required": ["userName", "phoneNumber", "password", "birthDay"],
             "allowed": []
         },
+        "login": {
+            "required": ["phoneNumber", "password"],
+            "allowed": []
+        },
         "getUserInfo": {
             "required": ["sessionToken"],
             "allowed": []

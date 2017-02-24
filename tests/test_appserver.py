@@ -33,7 +33,7 @@ class AppServerTest(unittest.TestCase):
 
     def test00(self):
         '''
-        user creating & checking
+        user creating & checking & login
         '''
         url = self.url_root + 'addQuestion'
         data1 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
@@ -45,9 +45,20 @@ class AppServerTest(unittest.TestCase):
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
         self.assertTrue(r1['status'] == 200)
 
-        data2 = {"userName": u"김철수", "phoneNumber": u"010-8274-1252", "password": u"sjsj!", "birthDay": 49881200}
+        data2 = {"userName": u"김철수", "phoneNumber": u"010-8274-1252", "password": u"sjsjbb2!", "birthDay": 49881200}
         r2 = requests.post(url_create, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
+
+        url_login = self.url_root + 'login'
+        data_login1 = {"phoneNumber": "010-8274-1252", "password": "sjsjbb2!"}
+        r_login1 = requests.post(url_login, data=json.dumps(data_login1)).json()
+        self.assertTrue(r_login1['status'] == 200)
+        self.assertTrue(r_login1['sessionToken'] == r2['sessionToken'])
+
+        # password matching failed
+        data_login2 = {"phoneNumber": "010-8274-1252", "password": "sjsjbb2"}
+        r_login2 = requests.post(url_login, data=json.dumps(data_login2)).json()
+        self.assertTrue(r_login2['status'] == 400)
 
         url_get = self.url_root + 'getUserInfo'
         for rr, dd in [(r1, data1), (r2, data2)]:

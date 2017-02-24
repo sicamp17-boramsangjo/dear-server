@@ -23,6 +23,7 @@ class RequestHandler(tornado.web.RequestHandler):
         self.opt = json.load(open(config_fname))
         self.post_book = {
             'createUser': self.create_user,
+            'login': self.login,
             'getUserInfo': self.get_user_info,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
@@ -80,6 +81,9 @@ class RequestHandler(tornado.web.RequestHandler):
 
     def find_user(self, user_key):
         return DB.users.find_one({'_id': ObjectId(user_key)})
+
+    def find_user_by_phonenumber(self, phone_number):
+        return DB.users.find_one({'phoneNumber': phone_number})
 
     def find_willitem(self, willitem_key):
         return DB.items.find_one({'_id': ObjectId(willitem_key)})
@@ -140,6 +144,23 @@ class RequestHandler(tornado.web.RequestHandler):
                     user_id = users.insert_one(record)
                     self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
                     self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def login(self, data):
+        try:
+            record = self.find_user_by_phonenumber(data['phoneNumber'])
+            if record:
+                if record['password'] == data['password']:
+                    DB.users.find_one_and_update({'_id': ObjectId(record['_id'])},
+                                                 {'$set': {'lastLoginTime': int(time.time())}}
+                                                )
+                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(record['_id'])})
+                else:
+                    self.write({'status': 400, 'msg': 'Password is not matched', 'user': None})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist', 'user': None})
         except Exception as e:
             self.write_error(500, str(e))
 
