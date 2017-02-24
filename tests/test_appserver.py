@@ -127,7 +127,6 @@ class AppServerTest(unittest.TestCase):
         data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
         url_create = self.url_root + 'createUser'
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
-        print(r1)
         self.assertTrue(r1['status'] == 200)
 
         # update user
@@ -149,23 +148,29 @@ class AppServerTest(unittest.TestCase):
         '''
         delete user
         '''
-        # url = self.url_root + 'deleteUser'
-        #
-        # # invalid sessionToken
-        # data0 = {"sessionToken": u"58ac500abf825f120f773d22"}
-        # r0 = requests.post(url, data=json.dumps(data0)).json()
-        # self.assertTrue(r0['status'] == 400)
-        #
-        # # insert user
-        # data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
-        # url_create = self.url_root + 'createUser'
-        # r1 = requests.post(url_create, data=json.dumps(data1)).json()
-        # self.assertTrue(r1['status'] == 200)
-        #
-        # # delete user
-        # data2 = {"sessionToken": r1['sessionToken']}
-        # r2 = requests.post(url, data=json.dumps(data2)).json()
-        # self.assertTrue(r2['status'] == 200)
+        url = self.url_root + 'deleteUser'
+
+        # insert question
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # insert user
+        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # delete user
+        data2 = {"sessionToken": r1['sessionToken']}
+        r2 = requests.post(url, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+
+        # invalid sessionToken
+        data3 = {"sessionToken": u"58ac500abf825f120f773d22"}
+        r3 = requests.post(url, data=json.dumps(data0)).json()
+        self.assertTrue(r3['status'] == 400)
 
     def test05(self):
         '''
@@ -173,6 +178,7 @@ class AppServerTest(unittest.TestCase):
         '''
         url_check_already_join = self.url_root + 'checkAlreadyJoin'
 
+        # insert question
         url_add_question = self.url_root + 'addQuestion'
         data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
         r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
