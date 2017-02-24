@@ -139,28 +139,35 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 | result | [UserInfo](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#user) |
 
 ```
-# Success
+# Success (신규 유저일 경우, "willitems" 필드는 {} 으로 되어있음.)
 {
   "status": 200,
   "msg": "OK",
   "user": {
     "userName": "sjkim",
-    "_id": "58ae628ebf825f4bb046dd24",
+    "_id": "58b0431abf825f7020669fbe",
     "receivers": [],
     "pushDuration": 31536000,
     "todaysQuestion": {
-      "questionId": "58ac500abf825f120f773d22",
-      "deliveredAt": 1487823502
+      "questionID": "58b04311bf825f7020669fbd",
+      "deliveredAt": 1487946522
     },
     "profileImageUrl": "",
-    "birthDay": 49881200,
-    "phoneNumber": "011-1274-5313",
-    "lastLoginTime": 1487823502,
-    "willitems": {},
+    "birthDay": 498841200,
+    "phoneNumber": "010-1234-7277",
+    "lastLoginTime": 1487946522,
+    "willitems": {
+      "58b04311bf825f7020669fbd": {
+        "willitemID": "58b0438ebf825f7020669fbf",
+        "modifiedAt": 1487946656
+      }
+    },
     "password": "sjsj!",
     "deviceToken": ""
   }
 }
+
+# Success (
 
 # Not existing user
 {
@@ -344,7 +351,8 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
 ### app/createAnswer
 유언 질문에 대한 답변을 생성한다.
 - 유저가 이미 답변했던 질문이면 그 전에 만들어졌던 willitem에 추가함.
-- 전에 답변한적 없는 질문이면 새로운 willitem이 만들어짐. willitemID는 questionID와 동일함.
+- 전에 답변한적 없는 질문이면 새로운 willitem이 만들어짐.
+- answerID는 각 willitem 마다 0부터 시작해서 1씩 증가함. (type: string)
 
 ##### Request
 | property | required | type |
@@ -357,11 +365,30 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
 | receivers | X | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 | lastUpdate | O | timestamp |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/createAnswer -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe",
+    "questionID": "58b04311bf825f7020669fbd",
+    "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음."
+}
+'
+```
+
 ##### Response
 | property | type |
 |----|----|
+| willitemID | string |
 | anwserID | string |
 
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "willitemID": "58b0438ebf825f7020669fbf",
+  "answerID": "1"
+}
+```
 
 ### app/deleteAnswer
 이미 생성되어있는 답변을 삭제한다.
@@ -392,20 +419,63 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
 |----|----|
 | results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
 
-### getWIllItem
+### getWllItem
 ##### Request
 | property | required | type |
 |---|---|---|
 | sessionToken | O | string |
 | willItemID | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Application/json' -d '
+{
+	"sessionToken": "58b0431abf825f7020669fbe",
+	"willitemID": "58b0438ebf825f7020669fbf"
+}
+'
+```
+
 ##### Response
 | property | type |
 |----|----|
 | result | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
 
-
-
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "willitem": {
+    "status": "normal",
+    "questionID": "58b04311bf825f7020669fbd",
+    "answers": {
+      "0": {
+        "answerVideo": "",
+        "answerText": "음.. 딱히 그런적 없는 듯?",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487946638,
+        "answerPhoto": "",
+        "createdAt": 1487946638
+      },
+      "1": {
+        "answerVideo": "",
+        "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487946656,
+        "_id": "1",
+        "answerPhoto": "",
+        "createdAt": 1487946656
+      }
+    },
+    "authorID": "58b0431abf825f7020669fbe",
+    "modifiedAt": 1487946656,
+    "_id": "58b0438ebf825f7020669fbf",
+    "createdAt": 1487946638,
+    "size": 2
+  }
+}
+```
 
 # Response model
 
