@@ -62,7 +62,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createUser -H 'Content-Type: Applic
 
 ##### Request
 | property | required | type | format |
-|---|---|---|
+|---|---|---|---|
 | phoneNumber | O | string | `01D-DDD-DDDD` |
 
 ##### Response
@@ -273,6 +273,8 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 | answerText | X | string |
 | answerPhoto | X | string |
 | answerVideo | X | string |
+| mediaWidth | X | int |
+| mediaHeight | X | int |
 | receivers | X | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
 | lastUpdate | O | timestamp |
 
@@ -371,6 +373,8 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 | answerText | string |
 | answerPhoto | string |
 | anwserVideo | string |
+| mediaWidth | int |
+| mediaHeight | int |
 | lastUpdate | timestamp |
 | receiverIDs | [receiverID] |
 
