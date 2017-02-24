@@ -243,13 +243,13 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/addQuestion -H 'Content-Type: Appli
 ##### Response
 | property | NonOptional | type |
 |----|----|----|
-| questionId | O | string |
+| questionID | O | string |
 
 ```
 {
   "status": 200,
   "msg": "OK",
-  "questionId": "58adbae4bf825f3ceca53ca6"
+  "questionID": "58adbae4bf825f3ceca53ca6"
 }
 ```
 
@@ -258,12 +258,12 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/addQuestion -H 'Content-Type: Appli
 ##### Request
 | property | required | type |
 |---|---|---|
-| questionId | O | string |
+| questionID | O | string |
 
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Application/json' -d '
 {
-	"questionId": "58adb8b2bf825f3c04f4d319"
+	"questionID": "58adb8b2bf825f3c04f4d319"
 }
 '
 ```
@@ -271,7 +271,9 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Appli
 ##### Response
 | property | NonOptional | type |
 |----|----|----|
-| questionId | O | string |
+| questionID | O | string |
+| text | O | string |
+| registeredTime | O | timestamp |
 
 ```
 {
@@ -315,7 +317,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
   "msg": "OK",
   "question": {
     "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
-    "questionId": "58ae5b08bf825f489ae9ff86",
+    "questionID": "58ae5b08bf825f489ae9ff86",
     "deliveredAt": 1487823502,
     "answered": 0
   }
