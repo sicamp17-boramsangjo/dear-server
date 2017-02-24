@@ -294,7 +294,6 @@ class RequestHandler(tornado.web.RequestHandler):
             self.write_error(500, str(e))
 
 
-
 if __name__ == "__main__":
     global SVR
     global DB

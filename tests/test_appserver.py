@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import time
 import ujson as json
 import unittest
 
@@ -192,6 +192,7 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r_get_willitems['size'] == 1)
         willitems = r_get_willitems['willitems']
         self.assertTrue(willitems[0] == willitem)
+        time.sleep(1)
 
         # add a answer for another question
         url_create_ans = self.url_root + 'createAnswer'
@@ -220,5 +221,5 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r_get_willitems['status'] == 200)
         self.assertTrue(r_get_willitems['size'] == 2)
         willitems = r_get_willitems['willitems']
-        self.assertTrue(willitems[0] == willitem)
-        self.assertTrue(willitems[1] == willitem2)
+        self.assertTrue(willitems[1] == willitem)
+        self.assertTrue(willitems[0] == willitem2)
