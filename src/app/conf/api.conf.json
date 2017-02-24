@@ -8,6 +8,10 @@
             "required": ["sessionToken"],
             "allowed": []
         },
+        "deleteUser": {
+            "required": ["sessionToken"],
+            "allowed": []
+        },
         "updateUserInfo": {
             "required": ["sessionToken"],
             "allowed": []
