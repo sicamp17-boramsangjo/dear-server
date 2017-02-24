@@ -62,7 +62,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createUser -H 'Content-Type: Applic
 
 ##### Request
 | property | required | type | format |
-|---|---|---|
+|---|---|---|---|
 | phoneNumber | O | string | `01D-DDD-DDDD` |
 
 ##### Response

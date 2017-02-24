@@ -19,7 +19,8 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
 
 
 class AppServerTest(unittest.TestCase):
-    url_root = 'http://indiweb08.cafe24.com:23233/app/'
+    # url_root = 'http://indiweb08.cafe24.com:23233/app/'
+    url_root = 'http://localhost:23233/app/'
 
     @classmethod
     def setUp(self):
@@ -115,50 +116,84 @@ class AppServerTest(unittest.TestCase):
         '''
         user update info
         '''
-        url = self.url_root + 'updateUserInfo'
-
-        # invalid sessionToken
-        data0 = {"sessionToken": u"58ac500abf825f120f773d22"}
-        r0 = requests.post(url, data=json.dumps(data0)).json()
-        self.assertTrue(r0['resultCode'] == 0)
-
-        # insert user
-        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
-        url_create = self.url_root + 'createUser'
-        r1 = requests.post(url_create, data=json.dumps(data1)).json()
-        self.assertTrue(r1['status'] == 200)
-
-        # update user
-        data2 = {"sessionToken": r1['sessionToken']}
-        r2 = requests.post(url, data=json.dumps(data2)).json()
-        self.assertTrue(r2['status'] == 200)
-        self.assertTrue(r2['resultCode'] == 1)
-
-        # update user including option fields
-        data3 = {"sessionToken": r1['sessionToken'], 'profileImageUrl': u"", 'pushDuration': 31536000, 'lastLoginAlarmDuration': u""} # FIXME fields values
-        r3 = requests.post(url, data=json.dumps(data3)).json()
-        self.assertTrue(r3['status'] == 200)
-        self.assertTrue(r3['resultCode'] == 1)
+        # url = self.url_root + 'updateUserInfo'
+        #
+        # # invalid sessionToken
+        # data0 = {"sessionToken": u"58ac500abf825f120f773d22"}
+        # r0 = requests.post(url, data=json.dumps(data0)).json()
+        # self.assertTrue(r0['resultCode'] == 0)
+        #
+        # # insert user
+        # data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        # url_create = self.url_root + 'createUser'
+        # r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        # self.assertTrue(r1['status'] == 200)
+        #
+        # # update user
+        # data2 = {"sessionToken": r1['sessionToken']}
+        # r2 = requests.post(url, data=json.dumps(data2)).json()
+        # self.assertTrue(r2['status'] == 200)
+        # self.assertTrue(r2['resultCode'] == 1)
+        #
+        # # update user including option fields
+        # data3 = {"sessionToken": r1['sessionToken'], 'profileImageUrl': u"", 'pushDuration': 31536000, 'lastLoginAlarmDuration': u""} # FIXME fields values
+        # r3 = requests.post(url, data=json.dumps(data3)).json()
+        # self.assertTrue(r3['status'] == 200)
+        # self.assertTrue(r3['resultCode'] == 1)
 
     def test04(self):
         '''
         delete user
         '''
-        url = self.url_root + 'deleteUser'
+        # url = self.url_root + 'deleteUser'
+        #
+        # # invalid sessionToken
+        # data0 = {"sessionToken": u"58ac500abf825f120f773d22"}
+        # r0 = requests.post(url, data=json.dumps(data0)).json()
+        # self.assertTrue(r0['status'] == 400)
+        #
+        # # insert user
+        # data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        # url_create = self.url_root + 'createUser'
+        # r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        # self.assertTrue(r1['status'] == 200)
+        #
+        # # delete user
+        # data2 = {"sessionToken": r1['sessionToken']}
+        # r2 = requests.post(url, data=json.dumps(data2)).json()
+        # self.assertTrue(r2['status'] == 200)
 
-        # invalid sessionToken
-        data0 = {"sessionToken": u"58ac500abf825f120f773d22"}
-        r0 = requests.post(url, data=json.dumps(data0)).json()
-        self.assertTrue(r0['resultCode'] == 0)
+    def test05(self):
+        '''
+        check already join
+        '''
+        url_check_already_join = self.url_root + 'checkAlreadyJoin'
 
-        # insert user
-        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # create user
+        data1 = {"userName": u"hhcha", "phoneNumber": u"011-1234-1233", "password": u"hhhh!", "birthDay": 49881200}
         url_create = self.url_root + 'createUser'
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
         self.assertTrue(r1['status'] == 200)
 
-        # delete user
-        data2 = {"sessionToken": r1['sessionToken']}
-        r2 = requests.post(url, data=json.dumps(data2)).json()
+        # get user info
+        # data2 = {"sessionToken": r1['sessionToken']}
+        # url_get_user_info = self.url_root + 'getUserInfo'
+        # r2 = requests.post(url_get_user_info, data=json.dumps(data2)).json()
+        # self.assertTrue(r1['status'] == 200)
+
+        # invalid phoneNumber
+        data2 = {"phoneNumber": u"011-1234-1233"}
+        r2 = requests.post(url_check_already_join, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
-        self.assertTrue(r2['resultCode'] == 1)
+        self.assertTrue(r2['result'] == True)
+
+        # valid phoneNumber
+        data3 = {"phoneNumber": u"019-1234-1233"}
+        r3 = requests.post(url_check_already_join, data=json.dumps(data3)).json()
+        self.assertTrue(r3['status'] == 400)
+        self.assertTrue(r3['result'] == False)

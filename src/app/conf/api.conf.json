@@ -4,6 +4,10 @@
             "required": ["userName", "phoneNumber", "password", "birthDay"],
             "allowed": []
         },
+        "checkAlreadyJoin": {
+            "required": ["phoneNumber"],
+            "allowed": []
+        },
         "getUserInfo": {
             "required": ["sessionToken"],
             "allowed": []

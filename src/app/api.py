@@ -24,6 +24,7 @@ class RequestHandler(tornado.web.RequestHandler):
         self.opt = json.load(open(config_fname))
         self.post_book = {
             'createUser': self.create_user,
+            'checkAlreadyJoin': self.check_already_join,
             'getUserInfo': self.get_user_info,
             'deleteUser': self.delete_user,
             'updateUserInfo': self.update_user_info,
@@ -131,6 +132,19 @@ class RequestHandler(tornado.web.RequestHandler):
             self.write_error(500, str(e))
 
     @tornado.gen.coroutine
+    def check_already_join(self, data):
+        try:
+            if not self.is_valid_phone_num(data['phoneNumber']):
+                self.write({'status': 400, 'msg': 'Invalid phone number format'})
+            if self.is_existing_user(data['phoneNumber']):
+                self.write({'status': 200, 'msg': 'OK', 'result': True})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist', 'result': False})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
     def get_user_info(self, data):
         try:
             record = self.find_user(data['sessionToken'])
@@ -155,9 +169,9 @@ class RequestHandler(tornado.web.RequestHandler):
 
                 # TODO add remove other data
 
-                self.write({'status': 200, 'msg': 'OK', 'resultCode': 1})  # FIXME resultCode
+                self.write({'status': 200, 'msg': 'OK'})
             else:
-                self.write({'status': 400, 'msg': 'Not exist', 'resultCode': 0})  # FIXME resultCode
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
