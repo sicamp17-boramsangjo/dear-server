@@ -13,7 +13,23 @@
             "allowed": []
         },
         "getQuestion": {
-            "required": ["questionId"],
+            "required": ["questionID"],
+            "allowed": []
+        },
+        "getTodaysQuestion": {
+            "required": ["sessionToken"],
+            "allowed": []
+        },
+        "createAnswer": {
+            "required": ["sessionToken", "questionID"],
+            "allowed": ["answerText", "answerPhoto", "answerVideo", "receivers"]
+        },
+        "getWillItem": {
+            "required": ["sessionToken", "willitemID"],
+            "allowed": []
+        },
+        "getWillItems": {
+            "required": ["sessionToken"],
             "allowed": []
         }
     },
