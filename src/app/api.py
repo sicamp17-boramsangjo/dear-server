@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
-import re
 import sys
 import time
 
@@ -73,12 +72,6 @@ class RequestHandler(tornado.web.RequestHandler):
         except:
             return False
 
-    def is_valid_phone_num(self, phone_num):
-        if re.match('^01\d-\d{4}-\d{4}$', phone_num):
-            return True
-        else:
-            return False
-
     def is_existing_user(self, phone_num):
         if DB.users.find_one({'phoneNumber': phone_num}):
             return True
@@ -120,8 +113,6 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             if not self.is_valid_ts(data['birthDay']):
                 self.write_error(400, 'Invalid birthDay value')
-            elif not self.is_valid_phone_num(data['phoneNumber']):
-                self.write_error(400, 'Invalid phone number format')
             elif self.is_existing_user(data['phoneNumber']):
                 self.write_error(400, 'The phone number is already exist')
             else:

@@ -60,10 +60,6 @@ class AppServerTest(unittest.TestCase):
         dupled_data = {"userName": u"artemis", "phoneNumber": u"010-1274-1352", "password": u"38fjfij1", "birthDay": 149881200}
         self.assertTrue(requests.post(url_create, data=json.dumps(dupled_data)).json()['status'] == 400)
 
-        # invalid phone number
-        invalid_data = {"userName": u"김철수", "phoneNumber": u"01082741252", "password": u"sjsj!", "birthDay": 49881200}
-        self.assertTrue(requests.post(url_create, data=json.dumps(invalid_data)).json()['status'] == 400)
-
         # invalid birthday
         invalid_data = {"userName": u"김철수", "phoneNumber": u"010-8274-1252", "password": u"sjsj!", "birthDay": 498812002727}
         self.assertTrue(requests.post(url_create, data=json.dumps(invalid_data)).json()['status'] == 400)
