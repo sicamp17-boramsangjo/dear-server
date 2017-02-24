@@ -120,8 +120,12 @@ class AppServerTest(unittest.TestCase):
         '''
         data = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
         url = self.url_root + 'addQuestion'
-        r = requests.post(url, data=json.dumps(data)).json()
-        self.assertTrue(r['status'] == 200)
+        r_q1 = requests.post(url, data=json.dumps(data)).json()
+        self.assertTrue(r_q1['status'] == 200)
+
+        data = {"text": u"가장 재밌게 보셨던 영화 제목은?"}
+        r_q2 = requests.post(url, data=json.dumps(data)).json()
+        self.assertTrue(r_q2['status'] == 200)
 
         data = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
         url_create = self.url_root + 'createUser'
@@ -179,3 +183,42 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(len(answers) == 2)
         self.assertTrue(answers[str(0)]['answerText'] == data_ans['answerText'])
         self.assertTrue(answers[str(1)]['answerText'] == data_ans2['answerText'])
+
+        # check willitems
+        url_get_willitems = self.url_root + 'getWillItems'
+        data_get_willitems = {'sessionToken': r_user['sessionToken']}
+        r_get_willitems = requests.post(url_get_willitems, data=json.dumps(data_get_willitems)).json()
+        self.assertTrue(r_get_willitems['status'] == 200)
+        self.assertTrue(r_get_willitems['size'] == 1)
+        willitems = r_get_willitems['willitems']
+        self.assertTrue(willitems[0] == willitem)
+
+        # add a answer for another question
+        url_create_ans = self.url_root + 'createAnswer'
+        data_ans2 = {'sessionToken': r_user['sessionToken'],
+                     'questionID': r_q2['questionID'],
+                     'answerText': u'인생은 아름다워',
+                     }
+        r_create_ans_a1 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
+        self.assertTrue(r_create_ans_a1['status'] == 200)
+        self.assertTrue(r_create_ans_a1['answerID'] == str(0))
+
+        # check created answers
+        url_get_willitem = self.url_root + 'getWillItem'
+        data_get_willitem = {'willitemID': r_create_ans_a1['willitemID'],
+                             'sessionToken': r_user['sessionToken'],
+                             }
+        r_get_willitem2 = requests.post(url_get_willitem, data=json.dumps(data_get_willitem)).json()
+        self.assertTrue(r_get_willitem2['status'] == 200)
+        willitem2 = r_get_willitem2['willitem']
+        self.assertTrue(willitem2['size'] == 1)
+
+        # re-check willitems
+        url_get_willitems = self.url_root + 'getWillItems'
+        data_get_willitems = {'sessionToken': r_user['sessionToken']}
+        r_get_willitems = requests.post(url_get_willitems, data=json.dumps(data_get_willitems)).json()
+        self.assertTrue(r_get_willitems['status'] == 200)
+        self.assertTrue(r_get_willitems['size'] == 2)
+        willitems = r_get_willitems['willitems']
+        self.assertTrue(willitems[0] == willitem)
+        self.assertTrue(willitems[1] == willitem2)

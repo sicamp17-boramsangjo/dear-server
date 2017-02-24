@@ -30,6 +30,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'getTodaysQuestion': self.get_todays_question,
             'createAnswer': self.create_answer,
             'getWillItem': self.get_willitem,
+            'getWillItems': self.get_willitems,
         }
         for k, f in self.post_book.iteritems():
             self.post_book[k] = (f, set(self.opt['fields'][k]['required']), set(self.opt['fields'][k]['allowed']))
@@ -52,13 +53,14 @@ class RequestHandler(tornado.web.RequestHandler):
             data = json.loads(self.request.body)
             if handler is None or required_fields is None or allowed_fields is None:
                 self.write_error(400, 'Invalid opcode: %s' % opcode)
-            missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
-            if len(missing_fields) > 0:
-                self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
-            elif len(not_allowed_fields) > 0:
-                self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
             else:
-                handler(data)
+                missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
+                if len(missing_fields) > 0:
+                    self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
+                elif len(not_allowed_fields) > 0:
+                    self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
+                else:
+                    handler(data)
         except Exception as e:
             self.write_error(500, 'Internal server error: %s' % str(e))
 
@@ -275,6 +277,22 @@ class RequestHandler(tornado.web.RequestHandler):
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def get_willitems(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            user_willitems = user['willitems']
+            Q = [{'willitemID': w['willitemID'], 'sessionToken': data['sessionToken']}
+                 for w in user_willitems.itervalues()]
+            willitems = map(self._get_willitem, Q)
+            willitems = [w for w, _ in willitems if w]
+            willitems.sort(key=lambda x: x['modifiedAt'], reverse=True)
+            self.write({'status': 200, 'msg': 'OK', 'size': len(willitems), 'willitems': willitems})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
 
 
 if __name__ == "__main__":

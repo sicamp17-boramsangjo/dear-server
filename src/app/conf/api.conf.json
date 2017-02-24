@@ -27,6 +27,10 @@
         "getWillItem": {
             "required": ["sessionToken", "willitemID"],
             "allowed": []
+        },
+        "getWillItems": {
+            "required": ["sessionToken"],
+            "allowed": []
         }
     },
     "settings": {
