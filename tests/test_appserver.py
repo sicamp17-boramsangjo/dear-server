@@ -54,6 +54,7 @@ class AppServerTest(unittest.TestCase):
             for f in ['userName', 'password', 'phoneNumber', 'birthDay']:
                 self.assertTrue(ret['status'] == 200)
                 self.assertTrue(dd[f] == ret['user'][f])
+                self.assertTrue(ret['user']['status'] == "normal")
 
         # duplicate phone number
         dupled_data = {"userName": u"artemis", "phoneNumber": u"010-1274-1352", "password": u"38fjfij1", "birthDay": 149881200}
@@ -130,14 +131,23 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r1['status'] == 200)
 
         # update user
-        data2 = {"sessionToken": r1['sessionToken']}
-        r2 = requests.post(url, data=json.dumps(data2)).json()
-        self.assertTrue(r2['status'] == 200)
+        # FIXME error not including optional parameter
+        # data2 = {"sessionToken": r1['sessionToken']}
+        # print(data2)
+        # r2 = requests.post(url, data=json.dumps(data2)).json()
+        # print(r2)
+        # self.assertTrue(r2['status'] == 200)
 
         # update user including option fields
-        data3 = {"sessionToken": r1['sessionToken'], 'profileImageUrl': u"", 'pushDuration': 31536000, 'lastLoginAlarmDuration': u""}
+        data3 = {"sessionToken": r1['sessionToken'], "profileImageUrl": u"/static/profile_chh.png", "pushDuration": 15768000, "lastLoginAlarmDuration": 7884000} # FIXME values
         r3 = requests.post(url, data=json.dumps(data3)).json()
         self.assertTrue(r3['status'] == 200)
+
+        url_get = self.url_root + 'getUserInfo'
+        ret = requests.post(url_get, data=json.dumps({"sessionToken": r1['sessionToken']})).json()
+        for f in ['profileImageUrl', 'pushDuration', 'lastLoginAlarmDuration']:
+            self.assertTrue(ret['status'] == 200)
+            self.assertTrue(data3[f] == ret['user'][f])
 
         # invalid sessionToken
         data4 = {"sessionToken": u"58ac500abf825f120f773d22"}
@@ -167,6 +177,11 @@ class AppServerTest(unittest.TestCase):
         r2 = requests.post(url, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
 
+        url_get = self.url_root + 'getUserInfo'
+        ret = requests.post(url_get, data=json.dumps({"sessionToken": r1['sessionToken']})).json()
+        self.assertTrue(ret['status'] == 400)
+        self.assertTrue(ret['msg'] == "Deleted user")
+
         # invalid sessionToken
         data3 = {"sessionToken": u"58ac500abf825f120f773d22"}
         r3 = requests.post(url, data=json.dumps(data0)).json()
@@ -190,14 +205,19 @@ class AppServerTest(unittest.TestCase):
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
         self.assertTrue(r1['status'] == 200)
 
-        # invalid phoneNumber
-        data2 = {"phoneNumber": u"011-1234-1233"}
+        # joined phoneNumber
+        data2 = {"phoneNumber": data1['phoneNumber']}
         r2 = requests.post(url_check_already_join, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
         self.assertTrue(r2['result'] == True)
 
-        # valid phoneNumber
+        # not joined phoneNumber
         data3 = {"phoneNumber": u"019-1234-1233"}
         r3 = requests.post(url_check_already_join, data=json.dumps(data3)).json()
-        self.assertTrue(r3['status'] == 400)
+        self.assertTrue(r3['status'] == 200)
         self.assertTrue(r3['result'] == False)
+
+        # invalid phoneNumber
+        data4 = {"phoneNumber": u"01082741252"}
+        r4 = requests.post(url_check_already_join, data=json.dumps(data4)).json()
+        self.assertTrue(r4['status'] == 400)

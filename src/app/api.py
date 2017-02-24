@@ -122,7 +122,8 @@ class RequestHandler(tornado.web.RequestHandler):
                           'todaysQuestion': {
                               'questionId': str(todays_question['_id']),
                               'deliveredAt': now_ts
-                              }
+                              },
+                          'status': "normal"
                           }
                 users = DB.users
                 user_id = users.insert_one(record)
@@ -136,10 +137,10 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             if not self.is_valid_phone_num(data['phoneNumber']):
                 self.write({'status': 400, 'msg': 'Invalid phone number format'})
-            if self.is_existing_user(data['phoneNumber']):
+            elif self.is_existing_user(data['phoneNumber']):
                 self.write({'status': 200, 'msg': 'OK', 'result': True})
             else:
-                self.write({'status': 400, 'msg': 'Not exist', 'result': False})
+                self.write({'status': 200, 'msg': 'Not exist', 'result': False})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
@@ -149,8 +150,11 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
-                record['_id'] = str(record['_id'])
-                self.write({'status': 200, 'msg': 'OK', 'user': record})
+                if record['status'] == 'deleted':
+                    self.write({'status': 400, 'msg': 'Deleted user', 'user': None})
+                else:
+                    record['_id'] = str(record['_id'])
+                    self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
             self.finish()
@@ -165,9 +169,12 @@ class RequestHandler(tornado.web.RequestHandler):
                 record['_id'] = str(record['_id'])
 
                 users = DB.users
-                user_id = users.remove({ '_id': record['_id'] })
-
-                # TODO add remove other data
+                user_id = users.update(
+                    {'_id': ObjectId(record['_id'])},
+                    {
+                        '$set': {'status': "deleted"}
+                    }
+                )
 
                 self.write({'status': 200, 'msg': 'OK'})
             else:
@@ -182,13 +189,24 @@ class RequestHandler(tornado.web.RequestHandler):
             record = self.find_user(data['sessionToken'])
             if record:
                 record['_id'] = str(record['_id'])
-                recordUpdated = {'profileImageUrl': "",
-                                 'pushDuration': self.opt['settings']['user']['pushDuration'],
-                                 'lastLoginAlarmDuration': ""
+
+                # FIXME error not including optional parameter
+                recordUpdated = {'profileImageUrl': data['profileImageUrl'] if data['profileImageUrl'] else record['profileImageUrl'],
+                                 'pushDuration': data['pushDuration'] if data['pushDuration'] else record['pushDuration'],
+                                 'lastLoginAlarmDuration': data['lastLoginAlarmDuration'] if data['lastLoginAlarmDuration'] else record['lastLoginAlarmDuration']
                 }
+
+                # recordUpdated = {}
+                # if data['profileImageUrl']:
+                #     recordUpdated['profileImageUrl'] = data['profileImageUrl']
+                # if data['pushDuration']:
+                #     recordUpdated['pushDuration'] = data['pushDuration']
+                # if data['pushDuration']:
+                #     recordUpdated['pushDuration'] = data['pushDuration']
+
                 users = DB.users
                 user_id = users.update(
-                    {'_id': record['_id']},
+                    {'_id': ObjectId(record['_id'])},
                     {
                         '$set': recordUpdated
                     }
