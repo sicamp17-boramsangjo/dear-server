@@ -426,17 +426,6 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createAnswer -H 'Content-Type: Appl
 
 ## 유언 조회
 
-### app/getWIllItems
-##### Request
-| property | required | type |
-|---|---|---|
-| sessionToken | O | string |
-
-##### Response
-| property | type |
-|----|----|
-| results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
-
 ### app/getWIllItem
 
 ##### Request
@@ -457,7 +446,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Appli
 ##### Response
 | property | type |
 |----|----|
-| result | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
+| willitem | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
 
 ```
 {
@@ -493,6 +482,117 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Appli
     "createdAt": 1487946638,
     "size": 2
   }
+}
+```
+
+### app/getWIllItems
+
+- 유저의 willitem 리스트를 가져온다.
+- 최종 이력 시간이 최근인 순서로 정렬됨.
+  - '최종 이력 시간'은 answer를 등록할 때마다 업데이트됨
+
+##### Request
+| property | required | type |
+|---|---|---|
+| sessionToken | O | string |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItems -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe"
+}
+'
+```
+
+##### Response
+| property | type |
+|----|----|
+| willitems | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
+| size | willitem 개수 |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "willitems": [
+    {
+      "status": "normal",
+      "question": {
+        "text": "재밌게 봤던 영화가 있나요?",
+        "_id": "58b064dcbf825f79be010885"
+      },
+      "answers": {
+        "0": {
+          "answerVideo": "",
+          "answerText": "스파이더맨 (2는 재미없었음)",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487955188,
+          "answerPhoto": "",
+          "createdAt": 1487955188
+        }
+      },
+      "authorID": "58b0431abf825f7020669fbe",
+      "modifiedAt": 1487955188,
+      "_id": "58b064f4bf825f7020669fc0",
+      "createdAt": 1487955188,
+      "size": 1
+    },
+    {
+      "status": "normal",
+      "question": {
+        "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
+        "_id": "58b04311bf825f7020669fbd"
+      },
+      "answers": {
+        "0": {
+          "answerVideo": "",
+          "answerText": "음.. 딱히 그런적 없는 듯?",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487946638,
+          "answerPhoto": "",
+          "createdAt": 1487946638
+        },
+        "1": {
+          "answerVideo": "",
+          "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487946656,
+          "_id": "1",
+          "answerPhoto": "",
+          "createdAt": 1487946656
+        },
+        "2": {
+          "answerVideo": "",
+          "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487948453,
+          "_id": "2",
+          "answerPhoto": "",
+          "createdAt": 1487948453
+        },
+        "3": {
+          "answerVideo": "",
+          "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487948468,
+          "_id": "3",
+          "answerPhoto": "",
+          "createdAt": 1487948468
+        }
+      },
+      "authorID": "58b0431abf825f7020669fbe",
+      "modifiedAt": 1487948468,
+      "_id": "58b0438ebf825f7020669fbf",
+      "createdAt": 1487946638,
+      "size": 4
+    }
+  ],
+  "size": 2
 }
 ```
 
