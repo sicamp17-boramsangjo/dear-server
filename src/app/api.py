@@ -96,6 +96,23 @@ class RequestHandler(tornado.web.RequestHandler):
         # not random yet...
         return DB.questions.find_one({})
 
+    def _get_willitem(self, data):
+        willitem = self.find_willitem(data['willitemID'])
+        if willitem:
+            if willitem['authorID'] == data['sessionToken']:
+                question = self.find_question(willitem['questionID'])
+                if question:
+                    willitem['_id'] = str(willitem['_id'])
+                    willitem['question'] = {'_id': willitem['questionID'], 'text': question['text']}
+                    willitem.pop('questionID')
+                    return willitem, 'OK'
+                else:
+                    return None, 'Question is not exist'
+            else:
+                return None, 'Invalid sessionToken'
+        else:
+            return None, 'The willitem is not exist'
+
     @tornado.gen.coroutine
     def create_user(self, data):
         try:
@@ -250,15 +267,11 @@ class RequestHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def get_willitem(self, data):
         try:
-            willitem = self.find_willitem(data['willitemID'])
+            willitem, msg = self._get_willitem(data)
             if willitem:
-                if willitem['authorID'] == data['sessionToken']:
-                    willitem['_id'] = str(willitem['_id'])
-                    self.write({'status': 200, 'msg': 'OK', 'willitem': willitem})
-                else:
-                    self.write({'status': 400, 'msg': 'Invalid sessionToken'})
+                self.write({'status': 200, 'msg': msg, 'willitem': willitem})
             else:
-                self.write({'status': 400, 'msg': 'The willitem is not exist'})
+                self.write({'status': 400, 'msg': msg})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))

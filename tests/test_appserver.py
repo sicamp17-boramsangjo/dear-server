@@ -14,6 +14,8 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
     db = client[db_name]
     result = db.users.delete_many({})
     print '%s items deleted from %s.users' % (int(result.deleted_count), db_name)
+    result = db.items.delete_many({})
+    print '%s items deleted from %s.items' % (int(result.deleted_count), db_name)
     result = db.questions.delete_many({})
     print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
 
@@ -172,7 +174,7 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(willitem['size'] == 2)
         self.assertTrue(willitem['authorID'] == r_user['sessionToken'])
         self.assertTrue(willitem['status'] == 'normal')
-        self.assertTrue(willitem['questionID'] == question_id)
+        self.assertTrue(willitem['question']['_id'] == question_id)
         answers = willitem['answers']
         self.assertTrue(len(answers) == 2)
         self.assertTrue(answers[str(0)]['answerText'] == data_ans['answerText'])
