@@ -85,12 +85,11 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r1['status'] == 200)
 
         url = self.url_root + 'getQuestion'
-        data2 = {"questionId": r1['questionId']}
+        data2 = {"questionID": r1['questionID']}
         r2 = requests.post(url, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
-        self.assertTrue(r2['question']['_id'] == r1['questionId'])
+        self.assertTrue(r2['question']['_id'] == r1['questionID'])
         self.assertTrue(r2['question']['text'] == data1['text'])
-
 
     def test02(self):
         '''
@@ -111,3 +110,70 @@ class AppServerTest(unittest.TestCase):
         r2 = requests.post(url_today, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
         self.assertTrue('question' in r2)
+
+
+    def test03_willitem01(self):
+        '''
+        create willitem & check
+        '''
+        data = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        url = self.url_root + 'addQuestion'
+        r = requests.post(url, data=json.dumps(data)).json()
+        self.assertTrue(r['status'] == 200)
+
+        data = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r_user = requests.post(url_create, data=json.dumps(data)).json()
+        self.assertTrue(r_user['status'] == 200)
+
+        data = {'sessionToken': r_user['sessionToken']}
+        url_todayq = self.url_root + 'getTodaysQuestion'
+        r_todayq = requests.post(url_todayq, data=json.dumps(data)).json()
+        self.assertTrue(r_todayq['status'] == 200)
+        question_id = r_todayq['question']['questionID']
+
+        # create 1st answer
+        url_create_ans = self.url_root + 'createAnswer'
+        data_ans = {'sessionToken': r_user['sessionToken'],
+                    'questionID': question_id,
+                    'answerText': u'맨날 그래',
+                    }
+        r_create_ans = requests.post(url_create_ans, data=json.dumps(data_ans)).json()
+        self.assertTrue(r_create_ans['status'] == 200)
+        self.assertTrue(r_create_ans['answerID'] == str(0))
+
+        # create 2nd answer
+        data_ans2 = {'sessionToken': r_user['sessionToken'],
+                    'questionID': question_id,
+                    'answerText': u'이게 무슨 질문이지',
+                    }
+        r_create_ans2 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
+        self.assertTrue(r_create_ans2['status'] == 200)
+        self.assertTrue(r_create_ans2['answerID'] == str(1))
+
+        self.assertTrue(r_create_ans['willitemID'] == r_create_ans2['willitemID'])
+
+        # create 3rd answer (invalid request)
+        data_ans3 = {'sessionToken': r_user['sessionToken'],
+                    'questionID': question_id + 'a',
+                    'answerText': u'이게 무슨 질문이지33333',
+                    }
+        r_create_ans3 = requests.post(url_create_ans, data=json.dumps(data_ans3)).json()
+        self.assertTrue(r_create_ans3['status'] == 500)
+
+        # check created answers
+        url_get_willitem = self.url_root + 'getWillItem'
+        data_get_willitem = {'willitemID': r_create_ans2['willitemID'],
+                             'sessionToken': r_user['sessionToken'],
+                             }
+        r_get_willitem = requests.post(url_get_willitem, data=json.dumps(data_get_willitem)).json()
+        self.assertTrue(r_get_willitem['status'] == 200)
+        willitem = r_get_willitem['willitem']
+        self.assertTrue(willitem['size'] == 2)
+        self.assertTrue(willitem['authorID'] == r_user['sessionToken'])
+        self.assertTrue(willitem['status'] == 'normal')
+        self.assertTrue(willitem['questionID'] == question_id)
+        answers = willitem['answers']
+        self.assertTrue(len(answers) == 2)
+        self.assertTrue(answers[str(0)]['answerText'] == data_ans['answerText'])
+        self.assertTrue(answers[str(1)]['answerText'] == data_ans2['answerText'])
