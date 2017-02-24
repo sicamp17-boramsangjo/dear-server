@@ -91,7 +91,6 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r2['question']['_id'] == r1['questionId'])
         self.assertTrue(r2['question']['text'] == data1['text'])
 
-
     def test02(self):
         '''
         today's question
@@ -111,3 +110,32 @@ class AppServerTest(unittest.TestCase):
         r2 = requests.post(url_today, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
         self.assertTrue('question' in r2)
+
+    def test03(self):
+        '''
+        user update info
+        '''
+        url = self.url_root + 'updateUserInfo'
+
+        # invalid sessionToken
+        data0 = {"sessionToken": u"58ac500abf825f120f773d22"}
+        r0 = requests.post(url, data=json.dumps(data0)).json()
+        self.assertTrue(r0['resultCode'] == 0)
+
+        # insert user
+        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # update user
+        data2 = {"sessionToken": r1['sessionToken']}
+        r2 = requests.post(url, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+        self.assertTrue(r2['resultCode'] == 1)
+
+        # update user including option fields
+        data3 = {"sessionToken": r1['sessionToken'], 'profileImageUrl': u"", 'pushDuration': 31536000, 'lastLoginAlarmDuration': u""} # FIXME fields values
+        r3 = requests.post(url, data=json.dumps(data3)).json()
+        self.assertTrue(r3['status'] == 200)
+        self.assertTrue(r3['resultCode'] == 1)

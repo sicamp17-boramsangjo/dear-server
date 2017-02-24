@@ -25,6 +25,7 @@ class RequestHandler(tornado.web.RequestHandler):
         self.post_book = {
             'createUser': self.create_user,
             'getUserInfo': self.get_user_info,
+            'updateUserInfo': self.update_user_info,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
             'getTodaysQuestion': self.get_todays_question,
@@ -137,6 +138,30 @@ class RequestHandler(tornado.web.RequestHandler):
                 self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def update_user_info(self, data):
+        try:
+            record = self.find_user(data['sessionToken'])
+            if record:
+                record['_id'] = str(record['_id'])
+                recordUpdated = {'profileImageUrl': "",
+                                 'pushDuration': self.opt['settings']['user']['pushDuration'],
+                                 'lastLoginAlarmDuration': ""
+                }
+                users = DB.users
+                user_id = users.update(
+                    {'_id': record['_id']},
+                    {
+                        '$set': recordUpdated
+                    }
+                )
+                self.write({'status': 200, 'msg': 'OK', 'resultCode': 1}) # FIXME resultCode
+            else:
+                self.write({'status': 400, 'msg': 'Not exist', 'resultCode': 0}) # FIXME resultCode
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
