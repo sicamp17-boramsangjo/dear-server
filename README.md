@@ -82,10 +82,27 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createUser -H 'Content-Type: Applic
 | phoneNumber | O | string |
 | password | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/login -H 'Content-Type: Application/json' -d '
+{
+    "phoneNumber": "010-1234-7277",
+    "password": "sjsj!"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | sessionToken | string |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "sessionToken": "58b0431abf825f7020669fbe"
+}
+```
 
 ### app/logout
 명시적으로 로그아웃 처리한다.
