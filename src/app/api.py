@@ -137,9 +137,6 @@ class RequestHandler(tornado.web.RequestHandler):
     def generate_answer_id(self, willitem_id, num_answers):
         return '%s_%s' % (willitem_id, num_answers)
 
-    # def generate_receiver_id(self, session_token_id, num_receivers):
-    #     return '%s_%s' % (session_token_id, num_receivers)
-
     @tornado.gen.coroutine
     def create_user(self, data):
         try:
@@ -261,21 +258,41 @@ class RequestHandler(tornado.web.RequestHandler):
         except Exception as e:
             self.write_error(500, str(e))
 
-    # TODO implement
     @tornado.gen.coroutine
     def add_receiver(self, data):
         try:
-            user = DB.users.find_one({'_id': ObjectId(data['sessionToken'])})
+            user = self.find_user(data['sessionToken'])
             if user:
-                receiver = {'name': data['name'],
+                receiver_id = data['sessionToken'] + '_' + str(len(user['receivers']))
+                receiver = {'receiverID': receiver_id,
+                            'name': data['name'],
                             'phoneNumber': data['phoneNumber'],
                             'status': 'normal',
                             'registeredTime': int(time.time())
                             }
-                DB.user.find_one_and_update(
+                DB.users.find_one_and_update(
                     {'_id': ObjectId(data['sessionToken'])},
                     {'$set': {
-                        'receivers.%s' % (data['sessionToken'] + '_' + str(len(user['receivers'])) ): receiver
+                        'receivers.%s' % (receiver_id): receiver
+                        }
+                    }
+                )
+                self.write({'status': 200, 'msg': 'OK', 'receiverID': receiver_id})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def remove_receiver(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            if user:
+                DB.users.find_one_and_update(
+                    {'_id': ObjectId(data['sessionToken'])},
+                    {'$set': {
+                        'receivers.%s.status' % (data['receiverID']): "deleted"
                         }
                     }
                 )
@@ -286,30 +303,16 @@ class RequestHandler(tornado.web.RequestHandler):
         except Exception as e:
             self.write_error(500, str(e))
 
-    # TODO implement
-    @tornado.gen.coroutine
-    def remove_receiver(self, data):
-        try:
-            record = DB.receivers.find_one({'_id': ObjectId(data['receiverID'])})
-            if record:
-                DB.receivers.find_one_and_update({'_id': ObjectId(record['receiverID'])},
-                                                 {'$set': {'status': 'deleted'}})
-                self.write({'status': 200, 'msg': 'OK'})
-            else:
-                self.write({'status': 400, 'msg': 'Not exist'})
-            self.finish()
-        except Exception as e:
-            self.write_error(500, str(e))
-
-    # TODO implement
     @tornado.gen.coroutine
     def get_receivers(self, data):
         try:
-            # record = DB.receivers.find_one({"_id": ObjectId(data['sessionToken'])})
-            # record = DB.receivers.find_one({"sessionToken": ObjectId(data['sessionToken'])})
-            record = DB.receivers.find_one({"sessionToken": data['sessionToken']})
-            # self.write({'status': 200, 'msg': 'OK', 'receivers': record})
-            self.write({'status': 200, 'msg': 'OK'})
+            user = self.find_user(data['sessionToken'])
+            if user:
+                receivers_filterd = {f: v for f, v in user['receivers'].iteritems() if v['status'] == 'normal'}
+                receivers = sorted(receivers_filterd.itervalues(), key=lambda x: x['receiverID'])
+                self.write({'status': 200, 'msg': 'OK', 'receivers': receivers})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
