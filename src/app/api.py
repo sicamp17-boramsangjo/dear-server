@@ -41,6 +41,9 @@ class RequestHandler(tornado.web.RequestHandler):
             'getUserInfo': self.get_user_info,
             'deleteUser': self.delete_user,
             'updateUserInfo': self.update_user_info,
+            'addReceiver': self.add_receiver,
+            'removeReceiver': self.remove_receiver,
+            'getReceivers': self.get_receivers,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
             'getTodaysQuestion': self.get_todays_question,
@@ -184,7 +187,7 @@ class RequestHandler(tornado.web.RequestHandler):
                                    'profileImageUrl': '',
                                    'pushDuration': self.opt['settings']['user']['pushDuration'],
                                    'willitems': {},
-                                   'receivers': [],
+                                   'receivers': {},
                                    'lastLoginTime': now_ts,
                                    'todaysQuestion': {
                                        'questionID': todays_question['questionID'],
@@ -286,6 +289,65 @@ class RequestHandler(tornado.web.RequestHandler):
                 if len(record_updated) > 0:
                     DB.users.find_one_and_update({'_id': ObjectId(record['userID'])}, {'$set': record_updated})
                 self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def add_receiver(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            if user:
+                receiver_id = data['sessionToken'] + '_' + str(len(user['receivers']))
+                receiver = {'receiverID': receiver_id,
+                            'name': data['name'],
+                            'phoneNumber': data['phoneNumber'],
+                            'status': 'normal',
+                            'registeredTime': int(time.time())
+                            }
+                DB.users.find_one_and_update(
+                    {'_id': ObjectId(data['sessionToken'])},
+                    {'$set': {
+                        'receivers.%s' % (receiver_id): receiver
+                        }
+                    }
+                )
+                self.write({'status': 200, 'msg': 'OK', 'receiverID': receiver_id})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def remove_receiver(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            if user:
+                DB.users.find_one_and_update(
+                    {'_id': ObjectId(data['sessionToken'])},
+                    {'$set': {
+                        'receivers.%s.status' % (data['receiverID']): "deleted"
+                        }
+                    }
+                )
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def get_receivers(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            if user:
+                receivers_filterd = {f: v for f, v in user['receivers'].iteritems() if v['status'] == 'normal'}
+                receivers = sorted(receivers_filterd.itervalues(), key=lambda x: x['receiverID'])
+                self.write({'status': 200, 'msg': 'OK', 'receivers': receivers})
             else:
                 self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()

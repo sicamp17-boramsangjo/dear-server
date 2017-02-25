@@ -410,3 +410,38 @@ class AppServerTest(unittest.TestCase):
         r_ro2 = requests.post(url_readonly, data=json.dumps(data_ro2)).json()
         self.assertTrue(r_ro2['status'] == 400)
         '''
+        
+    def test07_receiver(self):
+        '''
+        receiver add
+        '''
+        url_add_receiver = self.url_root + 'addReceiver'
+
+        # add receiver
+        data2 = {"sessionToken": r1['sessionToken'], "name": u"홍길동", "phoneNumber": u"011-1234-1233"}
+        r2 = requests.post(url_add_receiver, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+
+        # add receiver
+        data3 = {"sessionToken": r1['sessionToken'], "name": u"심청이", "phoneNumber": u"010-1222-3344"}
+        r3 = requests.post(url_add_receiver, data=json.dumps(data3)).json()
+        self.assertTrue(r3['status'] == 200)
+
+        # get receiver
+        url_get_receivers = self.url_root + 'getReceivers'
+        data5 = {"sessionToken": r1['sessionToken']}
+        r5 = requests.post(url_get_receivers, data=json.dumps(data5)).json()
+        self.assertTrue(r5['status'] == 200)
+
+        # confirm add
+        self.assertTrue(len(r5['receivers']) == 2)
+
+        # remove receiver
+        data4 = {"sessionToken": r1['sessionToken'], 'receiverID': r2['receiverID']}
+        url_remove_receiver = self.url_root + 'removeReceiver'
+        r4 = requests.post(url_remove_receiver, data=json.dumps(data4)).json()
+        self.assertTrue(r4['status'] == 200)
+
+        # confirm remove
+        r6 = requests.post(url_get_receivers, data=json.dumps(data5)).json()
+        self.assertTrue(len(r6['receivers']) == 1)

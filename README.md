@@ -83,13 +83,15 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 # Success
 {
   "status": 200,
-  "msg": "OK"
+  "msg": "OK",
+  "result": true
 }
 
 # Failed (Not exist)
 {
   "status": 200,
-  "msg": "Not exist"
+  "msg": "Not exist",
+  "result": false
 }
 ```
 
@@ -103,10 +105,42 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 | phoneNumber | O | string |
 | password | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/login -H 'Content-Type: Application/json' -d '
+{
+    "phoneNumber": "010-1234-7277",
+    "password": "sjsj!"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | sessionToken | string |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK",
+  "sessionToken": "58b0431abf825f7020669fbe"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist",
+  "user": null
+}
+
+# Failed (Password is not matched)
+{
+  "status": 400,
+  "msg": "Password is not matched",
+  "user": null
+}
+```
 
 ### app/logout
 명시적으로 로그아웃 처리한다.
@@ -117,10 +151,33 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 |---|---|---|
 | sessionToken | O | string |
 
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/logout -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist"
+}
+```
 
 ### app/deleteUser
 사용자를 탈퇴 처리한다.
@@ -130,11 +187,32 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 |---|---|---|
 | sessionToken | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/deleteUser -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
 
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist"
+}
+```
 
 ### app/updateUserInfo
 사용자 정보 중 일부를 업데이트한다.
@@ -147,10 +225,35 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 | pushDuration | X | timestamp |
 | lastLoginAlarmDuration | x | timestamp |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/updateUserInfo -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b10b75bf825f2a27e2ad6f",
+    "profileImageUrl": "static/img/profile/test.png",
+    "pushDuration": 31536000,
+    "lastLoginAlarmDuration": 31536000
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist"
+}
+```
 
 ### app/getUserInfo
 현재 로그인된 사용자 정보를 불러온다.
@@ -163,7 +266,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Application/json' -d '
 {
-	"sessionToken": "58ac500abf825f120f773d22"
+	"sessionToken": "58b10b75bf825f2a27e2ad6f"
 }
 '
 ```
@@ -179,42 +282,35 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
   "status": 200,
   "msg": "OK",
   "user": {
+    "status": "normal",
     "userName": "sjkim",
-    "_id": "58b0431abf825f7020669fbe",
     "receivers": [],
     "pushDuration": 31536000,
+    "lastLoginAlarmDuration": 31536000,
     "todaysQuestion": {
-      "questionID": "58b04311bf825f7020669fbd",
-      "deliveredAt": 1487946522
+      "questionID": "58b10b70bf825f2a27e2ad6d",
+      "deliveredAt": 1487997813
     },
-    "profileImageUrl": "",
+    "profileImageUrl": "static/img/profile/test.png",
     "birthDay": 498841200,
     "phoneNumber": "010-1234-7277",
-    "lastLoginTime": 1487946522,
+    "lastLoginTime": 1488001827,
     "willitems": {
-      "58b04311bf825f7020669fbd": {
-        "willitemID": "58b0438ebf825f7020669fbf",
-        "modifiedAt": 1487946656
+      "58b10b70bf825f2a27e2ad6d": {
+        "willitemID": "58b10ba0bf825f2a27e2ad70",
+        "modifiedAt": 1487997905
       }
     },
     "password": "sjsj!",
-    "deviceToken": ""
+    "deviceToken": "",
+    "userID": "58b10b75bf825f2a27e2ad6f"
   }
 }
 
-# Success (
-
-# Not existing user
+# Failed (Not existing user)
 {
   "status": 400,
   "msg": "Not exist",
-  "user": null
-}
-
-# Deleted user
-{
-  "status": 400,
-  "msg": "Deleted User",
   "user": null
 }
 ```
@@ -305,7 +401,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/addQuestion -H 'Content-Type: Appli
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Application/json' -d '
 {
-	"questionID": "58adb8b2bf825f3c04f4d319"
+	"questionID": "58b11c49bf825f2b805f6f04"
 }
 '
 ```
@@ -322,10 +418,10 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Appli
   "status": 200,
   "msg": "OK",
   "question": {
-    "answered": 0,
-    "_id": "58adb8b2bf825f3c04f4d319",
-    "question": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
-    "registeredTime": 1487780018
+    "questionID": "58b11c49bf825f2b805f6f04",
+    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
+    "registeredTime": 1488002121,
+    "answered": 0
   }
 }
 ```
@@ -358,10 +454,60 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
   "status": 200,
   "msg": "OK",
   "question": {
-    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
-    "questionID": "58ae5b08bf825f489ae9ff86",
-    "deliveredAt": 1487823502,
+    "text": "좋아하는 음식은?",
+    "questionID": "58b10b70bf825f2a27e2ad6d",
+    "deliveredAt": 1487997813,
     "answered": 0
+  },
+  "willitem": {
+    "status": "normal",
+    "question": {
+      "questionID": "58b10b70bf825f2a27e2ad6d",
+      "text": "좋아하는 음식은?"
+    },
+    "answers": [
+      {
+        "answerVideo": null,
+        "answerText": "사케동도 좋아함",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997905,
+        "answerID": "58b10ba0bf825f2a27e2ad70_2",
+        "mediaHeight": 128,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997905
+      },
+      {
+        "answerVideo": null,
+        "answerText": "카레카레카레",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997882,
+        "answerID": "58b10ba0bf825f2a27e2ad70_1",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997882
+      },
+      {
+        "answerVideo": null,
+        "answerText": "청국장",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997856,
+        "answerID": "58b10ba0bf825f2a27e2ad70_0",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997856
+      }
+    ],
+    "willitemID": "58b10ba0bf825f2a27e2ad70",
+    "authorID": "58b10b75bf825f2a27e2ad6f",
+    "modifiedAt": 1487997905,
+    "createdAt": 1487997856,
+    "size": 3
   }
 }
 ```
@@ -431,8 +577,8 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createAnswer -H 'Content-Type: Appl
 {
   "status": 200,
   "msg": "OK",
-  "willitemID": "58b0438ebf825f7020669fbf",
-  "answerID": "1"
+  "willitemID": "58b10ba0bf825f2a27e2ad70",
+  "answerID": "58b10ba0bf825f2a27e2ad70_3"
 }
 ```
 
@@ -454,17 +600,6 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createAnswer -H 'Content-Type: Appl
 
 ## 유언 조회
 
-### app/getWIllItems
-##### Request
-| property | required | type |
-|---|---|---|
-| sessionToken | O | string |
-
-##### Response
-| property | type |
-|----|----|
-| results | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
-
 ### app/getWIllItem
 
 ##### Request
@@ -485,7 +620,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Appli
 ##### Response
 | property | type |
 |----|----|
-| result | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
+| willitem | [WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem) |
 
 ```
 {
@@ -493,34 +628,163 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Appli
   "msg": "OK",
   "willitem": {
     "status": "normal",
-    "questionID": "58b04311bf825f7020669fbd",
-    "answers": {
-      "0": {
-        "answerVideo": "",
-        "answerText": "음.. 딱히 그런적 없는 듯?",
-        "receivers": [],
-        "status": "normal",
-        "modifiedAt": 1487946638,
-        "answerPhoto": "",
-        "createdAt": 1487946638
-      },
-      "1": {
-        "answerVideo": "",
-        "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
-        "receivers": [],
-        "status": "normal",
-        "modifiedAt": 1487946656,
-        "_id": "1",
-        "answerPhoto": "",
-        "createdAt": 1487946656
-      }
+    "question": {
+      "questionID": "58b10b70bf825f2a27e2ad6d",
+      "text": "좋아하는 음식은?"
     },
-    "authorID": "58b0431abf825f7020669fbe",
-    "modifiedAt": 1487946656,
-    "_id": "58b0438ebf825f7020669fbf",
-    "createdAt": 1487946638,
-    "size": 2
+    "answers": [
+      {
+        "answerVideo": null,
+        "answerText": "kimchi",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1488002666,
+        "answerID": "58b10ba0bf825f2a27e2ad70_3",
+        "mediaHeight": 0,
+        "mediaWidth": 0,
+        "answerPhoto": null,
+        "createdAt": 1488002666
+      },
+      {
+        "answerVideo": null,
+        "answerText": "사케동도 좋아함",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997905,
+        "answerID": "58b10ba0bf825f2a27e2ad70_2",
+        "mediaHeight": 128,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997905
+      },
+      {
+        "answerVideo": null,
+        "answerText": "카레카레카레",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997882,
+        "answerID": "58b10ba0bf825f2a27e2ad70_1",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997882
+      },
+      {
+        "answerVideo": null,
+        "answerText": "청국장",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997856,
+        "answerID": "58b10ba0bf825f2a27e2ad70_0",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997856
+      }
+    ],
+    "willitemID": "58b10ba0bf825f2a27e2ad70",
+    "authorID": "58b10b75bf825f2a27e2ad6f",
+    "modifiedAt": 1488002666,
+    "createdAt": 1487997856,
+    "size": 4
   }
+}
+```
+
+### app/getWIllItems
+
+- 유저의 willitem 리스트를 가져온다.
+- 최종 이력 시간이 최근인 순서로 정렬됨.
+  - '최종 이력 시간'은 answer를 등록할 때마다 업데이트됨
+
+##### Request
+| property | required | type |
+|---|---|---|
+| sessionToken | O | string |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItems -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe"
+}
+'
+```
+
+##### Response
+| property | type |
+|----|----|
+| willitems | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
+| size | willitem 개수 |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "willitems": [
+    {
+      "status": "normal",
+      "question": {
+        "questionID": "58b10b70bf825f2a27e2ad6d",
+        "text": "좋아하는 음식은?"
+      },
+      "answers": [
+        {
+          "answerVideo": null,
+          "answerText": "kimchi",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1488002666,
+          "answerID": "58b10ba0bf825f2a27e2ad70_3",
+          "mediaHeight": 0,
+          "mediaWidth": 0,
+          "answerPhoto": null,
+          "createdAt": 1488002666
+        },
+        {
+          "answerVideo": null,
+          "answerText": "사케동도 좋아함",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487997905,
+          "answerID": "58b10ba0bf825f2a27e2ad70_2",
+          "mediaHeight": 128,
+          "mediaWidth": null,
+          "answerPhoto": null,
+          "createdAt": 1487997905
+        },
+        {
+          "answerVideo": null,
+          "answerText": "카레카레카레",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487997882,
+          "answerID": "58b10ba0bf825f2a27e2ad70_1",
+          "mediaHeight": null,
+          "mediaWidth": null,
+          "answerPhoto": null,
+          "createdAt": 1487997882
+        },
+        {
+          "answerVideo": null,
+          "answerText": "청국장",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487997856,
+          "answerID": "58b10ba0bf825f2a27e2ad70_0",
+          "mediaHeight": null,
+          "mediaWidth": null,
+          "answerPhoto": null,
+          "createdAt": 1487997856
+        }
+      ],
+      "willitemID": "58b10ba0bf825f2a27e2ad70",
+      "authorID": "58b10b75bf825f2a27e2ad6f",
+      "modifiedAt": 1488002666,
+      "createdAt": 1487997856,
+      "size": 4
+    }
+  ],
+  "size": 1
 }
 ```
 
@@ -532,13 +796,30 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Appli
 ##### Request
 | property | required | type |
 |---|---|---|
-| userID | O | string |
-| birthDay | O | string |
+| readOnlyToken | O | string |
+| birthDay | O | string(?) integer(?) |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getSessionTokenForReadOnly -H 'Content-Type: Application/json' -d '
+{
+    "readOnlyToken": "58b159edbf825f3ecc21c691",
+    "birthDay": 498841200
+}
+'
+```
 
 ##### Response
 | property | type |
 |----|----|
 | sessionToken | string |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "sessionToken": "58b159edbf825f3ecc21c690"
+}
+```
 
 # Response model
 
