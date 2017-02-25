@@ -329,11 +329,29 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 | name | O | string |
 | phoneNumber | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/ -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b1e6adbf825f790eede16d",
+    "name": "김순자",
+    "phoneNumber": "010-1234-7214"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
 | receiverID | string |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "receiverID": "58b1e6adbf825f790eede16d_3"
+}
+```
 
 ### app/removeReceiver
 사망시 SMS를 받을 대상자를 제거한다.
@@ -344,22 +362,78 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 | sessionToken | O | string |
 | receiverID | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/ -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b1e6adbf825f790eede16d",
+    "receiverID": "58b1e6adbf825f790eede16d_1"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
 
+```
+{
+  "status": 200,
+  "msg": "OK"
+}
+```
+
 ### app/getReceivers
 사망시 SMS를 받을 대상자 리스트를 불러온다.
+
 ##### Request
 | property | required | type |
 |---|---|---|
 | sessionToken | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/ -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b1e6adbf825f790eede16d",
+    "receiverID": "58b1e6adbf825f790eede16d_1"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | receivers | [[Receiver](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#receiver)] |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "receivers": [
+    {
+      "status": "normal",
+      "receiverID": "58b1e6adbf825f790eede16d_0",
+      "phoneNumber": "010-1234-7214",
+      "name": "홍길동",
+      "registeredTime": 1488054058
+    },
+    {
+      "status": "normal",
+      "receiverID": "58b1e6adbf825f790eede16d_2",
+      "phoneNumber": "010-1234-7214",
+      "name": "김순자",
+      "registeredTime": 1488054110
+    },
+    {
+      "status": "normal",
+      "receiverID": "58b1e6adbf825f790eede16d_3",
+      "phoneNumber": "010-1234-7214",
+      "name": "김순자",
+      "registeredTime": 1488054112
+    }
+  ]
+}
+```
 
 ## 질문 추가 / 조회
 
