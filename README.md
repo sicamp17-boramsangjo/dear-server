@@ -126,11 +126,32 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/login -H 'Content-Type: Application
 |---|---|---|
 | sessionToken | O | string |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/deleteUser -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
 
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist"
+}
+```
 
 ### app/updateUserInfo
 사용자 정보 중 일부를 업데이트한다.
@@ -143,10 +164,35 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/login -H 'Content-Type: Application
 | pushDuration | X | timestamp |
 | lastLoginAlarmDuration | x | timestamp |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/updateUserInfo -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe",
+    "profileImageUrl": "static/img/profile/test.png",
+    "pushDuration": 31536000,
+    "lastLoginAlarmDuration": 31536000
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist"
+}
+```
 
 ### app/getUserInfo
 현재 로그인된 사용자 정보를 불러온다.
