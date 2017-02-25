@@ -251,6 +251,8 @@ class AppServerTest(unittest.TestCase):
         data_ans = {'sessionToken': r_user['sessionToken'],
                     'questionID': question_id,
                     'answerText': u'맨날 그래',
+                    'mediaWidth': 120,
+                    'mediaHeight': 80,
                     }
         r_create_ans = requests.post(url_create_ans, data=json.dumps(data_ans)).json()
         self.assertTrue(r_create_ans['status'] == 200)
@@ -291,6 +293,8 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(len(answers) == 2)
         self.assertTrue(answers[str(0)]['answerText'] == data_ans['answerText'])
         self.assertTrue(answers[str(1)]['answerText'] == data_ans2['answerText'])
+        self.assertTrue(answers[str(0)]['mediaWidth'] == data_ans['mediaWidth'])
+        self.assertTrue(answers[str(0)]['mediaHeight'] == data_ans['mediaHeight'])
 
         # check willitems
         url_get_willitems = self.url_root + 'getWillItems'
@@ -331,3 +335,30 @@ class AppServerTest(unittest.TestCase):
         willitems = r_get_willitems['willitems']
         self.assertTrue(willitems[1] == willitem)
         self.assertTrue(willitems[0] == willitem2)
+
+    def test06_logout(self):
+        '''
+        logout
+        '''
+        url_logout = self.url_root + 'logout'
+
+        # insert question
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # create user
+        data1 = {"userName": u"hhcha", "phoneNumber": u"011-1234-1233", "password": u"hhhh!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # logout
+        data2 = {"sessionToken": r1['sessionToken']}
+        r2 = requests.post(url_logout, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+
+        url_get_user_info = self.url_root + 'getUserInfo'
+        r3 = requests.post(url_get_user_info, data=json.dumps(data2)).json()
+        self.assertTrue(r3['status'] == 400)
