@@ -29,6 +29,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'getUserInfo': self.get_user_info,
             'deleteUser': self.delete_user,
             'updateUserInfo': self.update_user_info,
+            'addReceiver': self.add_receiver,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
             'getTodaysQuestion': self.get_todays_question,
@@ -251,6 +252,21 @@ class RequestHandler(tornado.web.RequestHandler):
                 self.write({'status': 200, 'msg': 'OK'})
             else:
                 self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def add_receiver(self, data):
+        try:
+            receivers = DB.receivers
+            record = {'sessionToken': data['sessionToken'],
+                      'name': data['name'],
+                      'phoneNumber': data['phoneNumber'],
+                      }
+            receiver_id = receivers.insert_one(record)
+
+            self.write({'status': 200, 'msg': 'OK', 'receiverID': str(receiver_id.inserted_id)})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))

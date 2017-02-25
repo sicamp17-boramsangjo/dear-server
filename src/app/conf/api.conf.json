@@ -28,6 +28,10 @@
             "required": ["sessionToken"],
             "allowed": ["pushDuration", "lastLoginAlarmDuration", "profileImageUrl", "deviceToken"]
         },
+        "addReceiver": {
+            "required": ["sessionToken", "name", "phoneNumber"],
+            "allowed": []
+        },
         "addQuestion": {
             "required": ["text"],
             "allowed": []

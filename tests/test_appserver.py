@@ -381,3 +381,26 @@ class AppServerTest(unittest.TestCase):
         url_get_user_info = self.url_root + 'getUserInfo'
         r3 = requests.post(url_get_user_info, data=json.dumps(data2)).json()
         self.assertTrue(r3['status'] == 400)
+
+    def test07_receiver(self):
+        '''
+        receiver add
+        '''
+        url_add_receiver = self.url_root + 'addReceiver'
+
+        # insert question
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # create user
+        data1 = {"userName": u"hhcha", "phoneNumber": u"011-1234-1233", "password": u"hhhh!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # add receiver
+        data2 = {"sessionToken": r1['sessionToken'], "name": u"홍길동", "phoneNumber": u"011-1234-1233!"}
+        r2 = requests.post(url_add_receiver, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
