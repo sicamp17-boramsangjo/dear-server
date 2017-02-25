@@ -862,6 +862,109 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItems -H 'Content-Type: Appl
 }
 ```
 
+### app/getWIllItemsWithReceiver
+
+- 유저의 willitem 리스트 중 특정 리시버의 answer만 필터링해서 가져온다.
+
+##### Request
+| property | required | type |
+|---|---|---|
+| sessionToken | O | string |
+| receiverID | O | string |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItemsWithReceiver -H 'Content-Type: Application/json' -d '
+{
+	"sessionToken": "58b1e63abf825f790eede16b",
+	"receiverID": "58b1e63abf825f790eede16b_0"
+}
+'
+```
+
+##### Response
+| property | type |
+|----|----|
+| willitems | [[WillItem](https://github.com/sicamp17-boramsangjo/server/blob/develop/README.md#willitem)] |
+| size | willitem 개수 |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "willitems": [
+    {
+      "status": "normal",
+      "questionID": "58b1e4b1bf825f790eede165",
+      "text": "몇살까지 살고 싶은가요?",
+      "answers": [
+        {
+          "answerVideo": null,
+          "answerText": "@임경택 Tag Tag Tag ",
+          "receivers": [
+            "58b1e63abf825f790eede16b_0"
+          ],
+          "status": "normal",
+          "modifiedAt": 1488064111,
+          "answerID": "58b1e7a1bf825f790eede16f_7",
+          "mediaHeight": 0,
+          "mediaWidth": 0,
+          "answerPhoto": null,
+          "createdAt": 1488064111
+        },
+        {
+          "answerVideo": null,
+          "answerText": "@임경택 hello!!!",
+          "receivers": [
+            "58b1e63abf825f790eede16b_0"
+          ],
+          "status": "normal",
+          "modifiedAt": 1488063782,
+          "answerID": "58b1e7a1bf825f790eede16f_6",
+          "mediaHeight": 0,
+          "mediaWidth": 0,
+          "answerPhoto": null,
+          "createdAt": 1488063782
+        },
+        {
+          "answerVideo": null,
+          "answerText": "@임경택 니가 좋아 ",
+          "receivers": [
+            "58b1e63abf825f790eede16b_0"
+          ],
+          "status": "normal",
+          "modifiedAt": 1488060443,
+          "answerID": "58b1e7a1bf825f790eede16f_5",
+          "mediaHeight": 0,
+          "mediaWidth": 0,
+          "answerPhoto": null,
+          "createdAt": 1488060443
+        },
+        {
+          "answerVideo": null,
+          "answerText": "@임경택 good for man!",
+          "receivers": [
+            "58b1e63abf825f790eede16b_0"
+          ],
+          "status": "normal",
+          "modifiedAt": 1488060294,
+          "answerID": "58b1e7a1bf825f790eede16f_4",
+          "mediaHeight": 0,
+          "mediaWidth": 0,
+          "answerPhoto": null,
+          "createdAt": 1488060294
+        }
+      ],
+      "willitemID": "58b1e7a1bf825f790eede16f",
+      "authorID": "58b1e63abf825f790eede16b",
+      "modifiedAt": 1488064111,
+      "createdAt": 1488054177,
+      "size": 8
+    }
+  ],
+  "size": 1
+}
+```
+
 ## 사후에 다른 사람이 유언 읽기
 
 ### app/getSessionTokenForReadOnly
