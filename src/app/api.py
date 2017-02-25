@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
+import mimetypes
+import os
+import random
 import sys
 import time
+import uuid
 
+import magic
 import ujson as json
 
 from bson.objectid import ObjectId
@@ -16,8 +21,15 @@ from tornado.log import enable_pretty_logging
 
 enable_pretty_logging()
 
+STATIC_FS_ROOT = '/home/boram/static/'
+STATIC_URL_ROOT = 'http://indiweb08.cafe24.com:8888/'
+VALID_EXTS = {'images': {'.png', '.jpg', '.jpeg', '.gif', '.bmp'},
+              'videos': {'.qt', '.mov', '.mp4', '.mkv', '.avi'},
+              }
+
 
 class RequestHandler(tornado.web.RequestHandler):
+
     def initialize(self, logger, config_fname):
         self.logger = logger
         self.opt = json.load(open(config_fname))
@@ -38,8 +50,13 @@ class RequestHandler(tornado.web.RequestHandler):
             'createAnswer': self.create_answer,
             'getWillItem': self.get_willitem,
             'getWillItems': self.get_willitems,
+            'uploadImage': self.upload_image,
+            'uploadVideo': self.upload_video,
+            'getSessionTokenForReadOnly': self.get_sesseion_token_for_read_only,
         }
         for k, f in self.post_book.iteritems():
+            if k.startswith('upload'):
+                continue
             self.post_book[k] = (f, set(self.opt['fields'][k]['required']), set(self.opt['fields'][k]['allowed']))
 
     @tornado.gen.coroutine
@@ -54,20 +71,27 @@ class RequestHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def post(self, opcode):
         try:
-            self.set_header('Content-Type', 'application/json')
-            handler, required_fields, allowed_fields = self.post_book.get(opcode, (None, None, None))
-            self.logger.info('Query: %s' % self.request.body)
-            data = json.loads(self.request.body)
-            if handler is None or required_fields is None or allowed_fields is None:
-                self.write_error(400, 'Invalid opcode: %s' % opcode)
-            else:
-                missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
-                if len(missing_fields) > 0:
-                    self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
-                elif len(not_allowed_fields) > 0:
-                    self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
+            if opcode.startswith('upload'):
+                handler = self.post_book.get(opcode, None)
+                if handler is None:
+                    self.write_error(400, 'Invalid opcode: %s' % opcode)
                 else:
-                    handler(data)
+                    handler()
+            else:
+                self.set_header('Content-Type', 'application/json')
+                handler, required_fields, allowed_fields = self.post_book.get(opcode, (None, None, None))
+                self.logger.info('Query: %s' % self.request.body)
+                data = json.loads(self.request.body)
+                if handler is None or required_fields is None or allowed_fields is None:
+                    self.write_error(400, 'Invalid opcode: %s' % opcode)
+                else:
+                    missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
+                    if len(missing_fields) > 0:
+                        self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
+                    elif len(not_allowed_fields) > 0:
+                        self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
+                    else:
+                        handler(data)
         except Exception as e:
             self.write_error(500, 'Internal server error: %s' % str(e))
 
@@ -110,9 +134,14 @@ class RequestHandler(tornado.web.RequestHandler):
         r = DB.questions.find_one({'_id': ObjectId(question_key)})
         return self.id_postprocessing(r, 'questionID') if r else None
 
+    def find_invitation(self, invitation_key):
+        r = DB.invitations.find_one({'_id': ObjectId(invitation_key)})
+        return self.id_postprocessing(r, 'invitationID') if r else None
+
     def get_random_question(self):
-        # not random yet...
-        r = DB.questions.find_one({})
+        num_questions = DB.questions.count()
+        random_offset = random.randint(0, num_questions - 1)
+        r = DB.questions.find().limit(-1).skip(random_offset).next()
         return self.id_postprocessing(r, 'questionID') if r else None
 
     def _get_willitem(self, data):
@@ -150,25 +179,33 @@ class RequestHandler(tornado.web.RequestHandler):
                 if not todays_question:
                     self.write_error(400, 'Failed to get todays question')
                 else:
-                    record = {'userName': data['userName'],
-                              'phoneNumber': data['phoneNumber'],
-                              'password': data['password'],
-                              'birthDay': data['birthDay'],
-                              'deviceToken': '',
-                              'profileImageUrl': '',
-                              'pushDuration': self.opt['settings']['user']['pushDuration'],
-                              'willitems': {},
-                              'receivers': {},
-                              'lastLoginTime': now_ts,
-                              'todaysQuestion': {
-                                  'questionID': todays_question['questionID'],
-                                  'deliveredAt': now_ts
-                                  },
-                              'status': 'normal'
-                              }
-                    users = DB.users
-                    user_id = users.insert_one(record)
-                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
+                    user_record = {'userName': data['userName'],
+                                   'phoneNumber': data['phoneNumber'],
+                                   'password': data['password'],
+                                   'birthDay': data['birthDay'],
+                                   'deviceToken': '',
+                                   'profileImageUrl': '',
+                                   'pushDuration': self.opt['settings']['user']['pushDuration'],
+                                   'willitems': {},
+                                   'receivers': {},
+                                   'lastLoginTime': now_ts,
+                                   'todaysQuestion': {
+                                       'questionID': todays_question['questionID'],
+                                       'deliveredAt': now_ts
+                                        },
+                                   'status': 'normal'
+                                   }
+                    user_id = DB.users.insert_one(user_record)
+                    read_only_record = {'userName': data['userName'],
+                                        'birthDay': data['birthDay'],
+                                        'sessionToken': str(user_id.inserted_id),
+                                        }
+                    read_only_id = DB.invitations.insert_one(read_only_record)
+                    DB.users.find_one_and_update({'_id': user_id.inserted_id},
+                                                 {'$set': {'readOnlyToken': str(read_only_id.inserted_id)}}
+                                                 )
+                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id),
+                                'readOnlyToken': str(read_only_id.inserted_id)})
                     self.finish()
         except Exception as e:
             self.write_error(500, str(e))
@@ -457,6 +494,61 @@ class RequestHandler(tornado.web.RequestHandler):
             else:
                 self.write({'status': 400, 'msg': 'The user is not exist'})
             self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    def select_ext(self, exts, data_type):
+        candidates = set(exts) & VALID_EXTS[data_type]
+        if len(candidates) == 0:
+            raise Exception('Failed to selecte extension: %s' % ','.join(exts))
+        else:
+            self.logger.info('ext candidates: %s' % ','.join(exts))
+            return list(candidates)[0]
+
+    def get_extension(self, fname, data_type):
+        mime_text = magic.from_buffer(open(fname).read(1024), mime=True)
+        exts = mimetypes.guess_all_extensions(mime_text)
+        return self.select_ext(exts, data_type)
+
+    @tornado.gen.coroutine
+    def _upload(self, data_type):
+        try:
+            cname = str(uuid.uuid4()) + '_' + str(uuid.uuid1())
+            fname = os.path.join(STATIC_FS_ROOT, data_type, cname)
+            with open(fname, 'w') as fout:
+                fout.write(self.request.body)
+            ext = self.get_extension(fname, data_type)
+            fname_with_ext = fname + ext
+            os.rename(fname, fname_with_ext)
+            url = STATIC_URL_ROOT + data_type + '/' + cname + ext
+            self.logger.info('uploaded: %s' % url)
+            self.write({'status': 200, 'msg': 'OK', 'url': url})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def upload_image(self):
+        self._upload('images')
+
+    @tornado.gen.coroutine
+    def upload_video(self):
+        self._upload('videos')
+
+    @tornado.gen.coroutine
+    def get_sesseion_token_for_read_only(self, data):
+        try:
+            invitation = self.find_invitation(data['readOnlyToken'])
+            if invitation:
+                # if invitation['birthDay'] == data['birthDay']:
+                #     self.write({'status': 200, 'msg': 'OK', 'sessionToken': invitation['sessionToken']})
+                # else:
+                #     self.write({'status': 400, 'msg': 'birthDay is not matched'})
+
+                # TODO 임시 비교로직 주석처리(개발용)
+                self.write({'status': 200, 'msg': 'OK', 'sessionToken': invitation['sessionToken']})
+            else:
+                self.write({'status': 400, 'msg': 'Invalid readOnlyToken'})
         except Exception as e:
             self.write_error(500, str(e))
 
