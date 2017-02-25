@@ -796,13 +796,30 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItems -H 'Content-Type: Appl
 ##### Request
 | property | required | type |
 |---|---|---|
-| userID | O | string |
-| birthDay | O | string |
+| readOnlyToken | O | string |
+| birthDay | O | string(?) integer(?) |
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/getSessionTokenForReadOnly -H 'Content-Type: Application/json' -d '
+{
+    "readOnlyToken": "58b159edbf825f3ecc21c691",
+    "birthDay": 498841200
+}
+'
+```
 
 ##### Response
 | property | type |
 |----|----|
 | sessionToken | string |
+
+```
+{
+  "status": 200,
+  "msg": "OK",
+  "sessionToken": "58b159edbf825f3ecc21c690"
+}
+```
 
 # Response model
 
