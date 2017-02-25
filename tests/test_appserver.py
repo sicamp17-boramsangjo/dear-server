@@ -20,6 +20,10 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
     print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
 
 
+def generate_answer_id(willitem_id, size):
+    return '%s_%s' % (willitem_id, size)
+
+
 class AppServerTest(unittest.TestCase):
     url_root = 'http://indiweb08.cafe24.com:23233/app/'
     # url_root = 'http://localhost:23233/app/'
@@ -99,7 +103,7 @@ class AppServerTest(unittest.TestCase):
         data2 = {"questionID": r1['questionID']}
         r2 = requests.post(url, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
-        self.assertTrue(r2['question']['_id'] == r1['questionID'])
+        self.assertTrue(r2['question']['questionID'] == r1['questionID'])
         self.assertTrue(r2['question']['text'] == data1['text'])
 
     def test02(self):
@@ -258,16 +262,16 @@ class AppServerTest(unittest.TestCase):
                     }
         r_create_ans = requests.post(url_create_ans, data=json.dumps(data_ans)).json()
         self.assertTrue(r_create_ans['status'] == 200)
-        self.assertTrue(r_create_ans['answerID'] == str(0))
+        self.assertTrue(r_create_ans['answerID'] == '%s_%s' % (r_create_ans['willitemID'], str(0)))
 
         # create 2nd answer
         data_ans2 = {'sessionToken': r_user['sessionToken'],
-                    'questionID': question_id,
-                    'answerText': u'이게 무슨 질문이지',
-                    }
+                     'questionID': question_id,
+                     'answerText': u'이게 무슨 질문이지',
+                     }
         r_create_ans2 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
         self.assertTrue(r_create_ans2['status'] == 200)
-        self.assertTrue(r_create_ans2['answerID'] == str(1))
+        self.assertTrue(r_create_ans2['answerID'] == '%s_%s' % (r_create_ans2['willitemID'], str(1)))
 
         self.assertTrue(r_create_ans['willitemID'] == r_create_ans2['willitemID'])
 
@@ -290,13 +294,16 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(willitem['size'] == 2)
         self.assertTrue(willitem['authorID'] == r_user['sessionToken'])
         self.assertTrue(willitem['status'] == 'normal')
-        self.assertTrue(willitem['question']['_id'] == question_id)
+        self.assertTrue(willitem['question']['questionID'] == question_id)
         answers = willitem['answers']
+        willitem_id = willitem['willitemID']
+        answer0_id = generate_answer_id(willitem_id, str(0))
+        answer1_id = generate_answer_id(willitem_id, str(1))
         self.assertTrue(len(answers) == 2)
-        self.assertTrue(answers[str(0)]['answerText'] == data_ans['answerText'])
-        self.assertTrue(answers[str(1)]['answerText'] == data_ans2['answerText'])
-        self.assertTrue(answers[str(0)]['mediaWidth'] == data_ans['mediaWidth'])
-        self.assertTrue(answers[str(0)]['mediaHeight'] == data_ans['mediaHeight'])
+        self.assertTrue(answers[answer0_id]['answerText'] == data_ans['answerText'])
+        self.assertTrue(answers[answer1_id]['answerText'] == data_ans2['answerText'])
+        self.assertTrue(answers[answer0_id]['mediaWidth'] == data_ans['mediaWidth'])
+        self.assertTrue(answers[answer0_id]['mediaHeight'] == data_ans['mediaHeight'])
 
         # check willitems
         url_get_willitems = self.url_root + 'getWillItems'
@@ -313,7 +320,7 @@ class AppServerTest(unittest.TestCase):
         r_todayq2 = requests.post(url_todayq2, data=json.dumps(data_today2)).json()
         self.assertTrue(r_todayq2['status'] == 200)
         self.assertTrue('willitem' in r_todayq2)
-        self.assertTrue(r_todayq2['willitem']['_id'] == willitem['_id'])
+        self.assertTrue(r_todayq2['willitem']['willitemID'] == willitem['willitemID'])
 
         # add a answer for another question
         url_create_ans = self.url_root + 'createAnswer'
@@ -323,7 +330,7 @@ class AppServerTest(unittest.TestCase):
                      }
         r_create_ans_a1 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
         self.assertTrue(r_create_ans_a1['status'] == 200)
-        self.assertTrue(r_create_ans_a1['answerID'] == str(0))
+        self.assertTrue(r_create_ans_a1['answerID'] == generate_answer_id(r_create_ans_a1['willitemID'], str(0)))
 
         # check created answers
         url_get_willitem = self.url_root + 'getWillItem'

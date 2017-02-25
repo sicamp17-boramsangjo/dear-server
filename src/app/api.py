@@ -83,28 +83,34 @@ class RequestHandler(tornado.web.RequestHandler):
         else:
             return False
 
+    def id_postprocessing(self, data, field):
+        data[field] = str(data['_id'])
+        data.pop('_id')
+        return data
+
     def find_user(self, user_key):
-        user = DB.users.find_one({'_id': ObjectId(user_key)})
-        if user:
-            if user['status'] != 'normal':
-                return None
-            else:
-                return user
+        r = DB.users.find_one({'_id': ObjectId(user_key)})
+        if r:
+            return self.id_postprocessing(r, 'userID') if r['status'] == 'normal' else None
         else:
             return None
 
     def find_user_by_phonenumber(self, phone_number):
-        return DB.users.find_one({'phoneNumber': phone_number})
+        r = DB.users.find_one({'phoneNumber': phone_number})
+        return self.id_postprocessing(r, 'userID') if r else None
 
     def find_willitem(self, willitem_key):
-        return DB.items.find_one({'_id': ObjectId(willitem_key)})
+        r = DB.items.find_one({'_id': ObjectId(willitem_key)})
+        return self.id_postprocessing(r, 'willitemID') if r else None
 
     def find_question(self, question_key):
-        return DB.questions.find_one({'_id': ObjectId(question_key)})
+        r = DB.questions.find_one({'_id': ObjectId(question_key)})
+        return self.id_postprocessing(r, 'questionID') if r else None
 
     def get_random_question(self):
         # not random yet...
-        return DB.questions.find_one({})
+        r = DB.questions.find_one({})
+        return self.id_postprocessing(r, 'questionID') if r else None
 
     def _get_willitem(self, data):
         willitem = self.find_willitem(data['willitemID'])
@@ -112,8 +118,8 @@ class RequestHandler(tornado.web.RequestHandler):
             if willitem['authorID'] == data['sessionToken']:
                 question = self.find_question(willitem['questionID'])
                 if question:
-                    willitem['_id'] = str(willitem['_id'])
-                    willitem['question'] = {'_id': willitem['questionID'], 'text': question['text']}
+                    willitem['willitemID'] = willitem['willitemID']
+                    willitem['question'] = {'questionID': willitem['questionID'], 'text': question['text']}
                     willitem.pop('questionID')
                     return willitem, 'OK'
                 else:
@@ -122,6 +128,9 @@ class RequestHandler(tornado.web.RequestHandler):
                 return None, 'Invalid sessionToken'
         else:
             return None, 'The willitem is not exist'
+
+    def generate_answer_id(self, willitem_id, num_answers):
+        return '%s_%s' % (willitem_id, num_answers)
 
     @tornado.gen.coroutine
     def create_user(self, data):
@@ -147,7 +156,7 @@ class RequestHandler(tornado.web.RequestHandler):
                               'receivers': [],
                               'lastLoginTime': now_ts,
                               'todaysQuestion': {
-                                  'questionID': str(todays_question['_id']),
+                                  'questionID': todays_question['questionID'],
                                   'deliveredAt': now_ts
                                   },
                               'status': 'normal'
@@ -165,10 +174,10 @@ class RequestHandler(tornado.web.RequestHandler):
             record = self.find_user_by_phonenumber(data['phoneNumber'])
             if record:
                 if record['password'] == data['password']:
-                    DB.users.find_one_and_update({'_id': ObjectId(record['_id'])},
+                    DB.users.find_one_and_update({'_id': ObjectId(record['userID'])},
                                                  {'$set': {'lastLoginTime': int(time.time()), 'status': 'normal'}}
                                                 )
-                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(record['_id'])})
+                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(record['userID'])})
                 else:
                     self.write({'status': 400, 'msg': 'Password is not matched', 'user': None})
             else:
@@ -181,9 +190,9 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
-                record['_id'] = str(record['_id'])
                 users = DB.users
-                users.find_one_and_update({'_id': ObjectId(record['_id'])}, {'$set': {'status': "logout", 'deviceToken': ""}})
+                users.find_one_and_update({'_id': ObjectId(record['userID'])},
+                                          {'$set': {'status': "logout", 'deviceToken': ""}})
                 self.write({'status': 200, 'msg': 'OK'})
             else:
                 self.write({'status': 400, 'msg': 'Not exist'})
@@ -207,7 +216,6 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
-                record['_id'] = str(record['_id'])
                 self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
@@ -220,9 +228,8 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
-                record['_id'] = str(record['_id'])
                 users = DB.users
-                users.find_one_and_update({'_id': ObjectId(record['_id'])}, {'$set': {'status': "deleted"}})
+                users.find_one_and_update({'_id': ObjectId(record['userID'])}, {'$set': {'status': "deleted"}})
                 self.write({'status': 200, 'msg': 'OK'})
             else:
                 self.write({'status': 400, 'msg': 'Not exist'})
@@ -238,7 +245,7 @@ class RequestHandler(tornado.web.RequestHandler):
                 fields = {'profileImageUrl', 'pushDuration', 'lastLoginAlarmDuration', 'deviceToken'}
                 record_updated = {f: v for f, v in data.iteritems() if f in fields}
                 if len(record_updated) > 0:
-                    DB.users.find_one_and_update({'_id': record['_id']}, {'$set': record_updated})
+                    DB.users.find_one_and_update({'_id': ObjectId(record['userID'])}, {'$set': record_updated})
                 self.write({'status': 200, 'msg': 'OK'})
             else:
                 self.write({'status': 400, 'msg': 'Not exist'})
@@ -265,10 +272,9 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_question(data['questionID'])
             if record:
-                record['_id'] = str(record['_id'])
                 self.write({'status': 200, 'msg': 'OK', 'question': record})
             else:
-                self.write({'status': 400, 'msg': 'Not exist', 'question': None})
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
@@ -282,7 +288,7 @@ class RequestHandler(tornado.web.RequestHandler):
                 if question:
                     record = {'text': question['text'],
                               'answered': question['answered'],
-                              'questionID': str(question['_id']),
+                              'questionID': question['questionID'],
                               'deliveredAt': user['todaysQuestion']['deliveredAt'],
                               }
                     res = {'status': 200, 'msg': 'OK', 'question': record}
@@ -321,35 +327,39 @@ class RequestHandler(tornado.web.RequestHandler):
                 if user_willitem_info:
                     willitem = self.find_willitem(user_willitem_info['willitemID'])
                     if willitem:
-                        answer['_id'] = str(willitem['size'])
-                        DB.items.find_one_and_update({'_id': ObjectId(willitem['_id'])},
+                        answer['answerID'] = self.generate_answer_id(willitem['willitemID'], str(willitem['size']))
+                        DB.items.find_one_and_update({'_id': ObjectId(willitem['willitemID'])},
                                                      {'$set': {'modifiedAt': int(time.time()),
-                                                               'answers.%s' % answer['_id']: answer},
+                                                               'answers.%s' % answer['answerID']: answer},
                                                       '$inc': {'size': 1},
                                                       }
                                                      )
                         DB.users.find_one_and_update({'_id': ObjectId(data['sessionToken'])},
                                                      {'$set': {'willitems.%s.modifiedAt' % data['questionID']: int(time.time())},
                                                       })
-                        self.write({'status': 200, 'msg': 'OK', 'answerID': answer['_id'], 'willitemID': str(willitem['_id'])})
+                        self.write({'status': 200, 'msg': 'OK', 'answerID': answer['answerID'], 'willitemID': str(willitem['willitemID'])})
                     else:
                         self.write({'status': 500, 'msg': 'Failed to find existing willitem'})
                 else:
                     willitem = {'createdAt': int(time.time()),
                                 'modifiedAt': int(time.time()),
                                 'size': 1,
-                                'answers': {str(0): answer},
+                                'answers': {},
                                 'status': 'normal',
-                                'authorID': str(user['_id']),
+                                'authorID': user['userID'],
                                 'questionID': data['questionID']
                                 }
                     willitem_id = DB.items.insert_one(willitem)
                     user_willitem_info = {'modifiedAt': int(time.time()),
                                           'willitemID': str(willitem_id.inserted_id)}
+                    answer['answerID'] = self.generate_answer_id(str(willitem_id.inserted_id), str(0))
+                    DB.items.find_one_and_update({'_id': ObjectId(str(willitem_id.inserted_id))},
+                                                 {'$set': {'answers.%s' % answer['answerID']: answer}
+                                                  })
                     DB.users.find_one_and_update({'_id': ObjectId(data['sessionToken'])},
                                                  {'$set': {'willitems.%s' % data['questionID']: user_willitem_info},
                                                   })
-                    self.write({'status': 200, 'msg': 'OK', 'answerID': str(0), 'willitemID': str(willitem_id.inserted_id)})
+                    self.write({'status': 200, 'msg': 'OK', 'answerID': answer['answerID'], 'willitemID': str(willitem_id.inserted_id)})
             else:
                 self.write({'status': 400, 'msg': 'Invalid seesionToken or questionID', 'question': None})
             self.finish()
