@@ -134,10 +134,33 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/login -H 'Content-Type: Application
 |---|---|---|
 | sessionToken | O | string |
 
+
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/logout -H 'Content-Type: Application/json' -d '
+{
+    "sessionToken": "58b0431abf825f7020669fbe"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | resultCode | int |
+
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist"
+}
+```
 
 ### app/deleteUser
 사용자를 탈퇴 처리한다.
