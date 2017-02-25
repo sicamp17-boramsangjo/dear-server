@@ -30,6 +30,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'deleteUser': self.delete_user,
             'updateUserInfo': self.update_user_info,
             'addReceiver': self.add_receiver,
+            'getReceivers': self.get_receivers,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
             'getTodaysQuestion': self.get_todays_question,
@@ -263,10 +264,23 @@ class RequestHandler(tornado.web.RequestHandler):
             record = {'sessionToken': data['sessionToken'],
                       'name': data['name'],
                       'phoneNumber': data['phoneNumber'],
+                      'registeredTime': int(time.time())
                       }
             receiver_id = receivers.insert_one(record)
 
             self.write({'status': 200, 'msg': 'OK', 'receiverID': str(receiver_id.inserted_id)})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def get_receivers(self, data):
+        try:
+            # record = DB.receivers.find_one({"_id": ObjectId(data['sessionToken'])})
+            # record = DB.receivers.find_one({"sessionToken": ObjectId(data['sessionToken'])})
+            record = DB.receivers.find_one({"sessionToken": data['sessionToken']})
+            # self.write({'status': 200, 'msg': 'OK', 'receivers': record})
+            self.write({'status': 200, 'msg': 'OK'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))

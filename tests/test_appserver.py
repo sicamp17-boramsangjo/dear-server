@@ -18,6 +18,8 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
     print '%s items deleted from %s.items' % (int(result.deleted_count), db_name)
     result = db.questions.delete_many({})
     print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
+    result = db.receivers.delete_many({})
+    print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
 
 
 def generate_answer_id(willitem_id, size):
@@ -404,3 +406,11 @@ class AppServerTest(unittest.TestCase):
         data2 = {"sessionToken": r1['sessionToken'], "name": u"홍길동", "phoneNumber": u"011-1234-1233!"}
         r2 = requests.post(url_add_receiver, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
+
+        #get receiver
+        # url_get_receivers = self.url_root + 'getReceivers'
+        # data3 = {"sessionToken": r1['sessionToken']}
+        # print(data3)
+        # r3 = requests.post(url_get_receivers, data=json.dumps(data3)).json()
+        # print(r3)
+        # self.assertTrue(r3['status'] == 200)

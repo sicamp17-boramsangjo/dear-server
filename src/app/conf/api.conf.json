@@ -32,6 +32,10 @@
             "required": ["sessionToken", "name", "phoneNumber"],
             "allowed": []
         },
+        "getReceivers": {
+            "required": ["sessionToken"],
+            "allowed": []
+        },
         "addQuestion": {
             "required": ["text"],
             "allowed": []
