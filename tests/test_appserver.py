@@ -263,6 +263,7 @@ class AppServerTest(unittest.TestCase):
         r_create_ans = requests.post(url_create_ans, data=json.dumps(data_ans)).json()
         self.assertTrue(r_create_ans['status'] == 200)
         self.assertTrue(r_create_ans['answerID'] == '%s_%s' % (r_create_ans['willitemID'], str(0)))
+        time.sleep(1)
 
         # create 2nd answer
         data_ans2 = {'sessionToken': r_user['sessionToken'],
@@ -272,6 +273,7 @@ class AppServerTest(unittest.TestCase):
         r_create_ans2 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
         self.assertTrue(r_create_ans2['status'] == 200)
         self.assertTrue(r_create_ans2['answerID'] == '%s_%s' % (r_create_ans2['willitemID'], str(1)))
+        time.sleep(1)
 
         self.assertTrue(r_create_ans['willitemID'] == r_create_ans2['willitemID'])
 
@@ -296,14 +298,11 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(willitem['status'] == 'normal')
         self.assertTrue(willitem['question']['questionID'] == question_id)
         answers = willitem['answers']
-        willitem_id = willitem['willitemID']
-        answer0_id = generate_answer_id(willitem_id, str(0))
-        answer1_id = generate_answer_id(willitem_id, str(1))
         self.assertTrue(len(answers) == 2)
-        self.assertTrue(answers[answer0_id]['answerText'] == data_ans['answerText'])
-        self.assertTrue(answers[answer1_id]['answerText'] == data_ans2['answerText'])
-        self.assertTrue(answers[answer0_id]['mediaWidth'] == data_ans['mediaWidth'])
-        self.assertTrue(answers[answer0_id]['mediaHeight'] == data_ans['mediaHeight'])
+        self.assertTrue(answers[1]['answerText'] == data_ans['answerText'])
+        self.assertTrue(answers[0]['answerText'] == data_ans2['answerText'])
+        self.assertTrue(answers[1]['mediaWidth'] == data_ans['mediaWidth'])
+        self.assertTrue(answers[1]['mediaHeight'] == data_ans['mediaHeight'])
 
         # check willitems
         url_get_willitems = self.url_root + 'getWillItems'
@@ -351,6 +350,10 @@ class AppServerTest(unittest.TestCase):
         willitems = r_get_willitems['willitems']
         self.assertTrue(willitems[1] == willitem)
         self.assertTrue(willitems[0] == willitem2)
+
+        data_get_willitems = {'sessionToken': '111111111111111111111111'}
+        r_get_willitems = requests.post(url_get_willitems, data=json.dumps(data_get_willitems)).json()
+        self.assertTrue(r_get_willitems['status'] == 400)
 
     def test06_logout(self):
         '''

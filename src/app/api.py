@@ -120,6 +120,9 @@ class RequestHandler(tornado.web.RequestHandler):
                 if question:
                     willitem['willitemID'] = willitem['willitemID']
                     willitem['question'] = {'questionID': willitem['questionID'], 'text': question['text']}
+                    willitem['answers'] = sorted(willitem['answers'].itervalues(),
+                                                 key=lambda x: x['modifiedAt'],
+                                                 reverse=True)
                     willitem.pop('questionID')
                     return willitem, 'OK'
                 else:
@@ -382,13 +385,16 @@ class RequestHandler(tornado.web.RequestHandler):
     def get_willitems(self, data):
         try:
             user = self.find_user(data['sessionToken'])
-            user_willitems = user['willitems']
-            Q = [{'willitemID': w['willitemID'], 'sessionToken': data['sessionToken']}
-                 for w in user_willitems.itervalues()]
-            willitems = map(self._get_willitem, Q)
-            willitems = [w for w, _ in willitems if w]
-            willitems.sort(key=lambda x: x['modifiedAt'], reverse=True)
-            self.write({'status': 200, 'msg': 'OK', 'size': len(willitems), 'willitems': willitems})
+            if user:
+                user_willitems = user['willitems']
+                Q = [{'willitemID': w['willitemID'], 'sessionToken': data['sessionToken']}
+                     for w in user_willitems.itervalues()]
+                willitems = map(self._get_willitem, Q)
+                willitems = [w for w, _ in willitems if w]
+                willitems.sort(key=lambda x: x['modifiedAt'], reverse=True)
+                self.write({'status': 200, 'msg': 'OK', 'size': len(willitems), 'willitems': willitems})
+            else:
+                self.write({'status': 400, 'msg': 'The user is not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
