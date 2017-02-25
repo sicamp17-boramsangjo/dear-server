@@ -476,10 +476,13 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             invitation = self.find_invitation(data['readOnlyToken'])
             if invitation:
-                if invitation['birthDay'] == data['birthDay']:
-                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': invitation['sessionToken']})
-                else:
-                    self.write({'status': 400, 'msg': 'birthDay is not matched'})
+                # if invitation['birthDay'] == data['birthDay']:
+                #     self.write({'status': 200, 'msg': 'OK', 'sessionToken': invitation['sessionToken']})
+                # else:
+                #     self.write({'status': 400, 'msg': 'birthDay is not matched'})
+
+                # TODO 임시 비교로직 주석처리(개발용)
+                self.write({'status': 200, 'msg': 'OK', 'sessionToken': invitation['sessionToken']})
             else:
                 self.write({'status': 400, 'msg': 'Invalid readOnlyToken'})
         except Exception as e:
