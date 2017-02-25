@@ -83,13 +83,15 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: 
 # Success
 {
   "status": 200,
-  "msg": "OK"
+  "msg": "OK",
+  "result": true
 }
 
 # Failed (Not exist)
 {
   "status": 200,
-  "msg": "Not exist"
+  "msg": "Not exist",
+  "result": false
 }
 ```
 
@@ -118,10 +120,25 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/login -H 'Content-Type: Application
 | sessionToken | string |
 
 ```
+# Success
 {
   "status": 200,
   "msg": "OK",
   "sessionToken": "58b0431abf825f7020669fbe"
+}
+
+# Failed (Not exist)
+{
+  "status": 400,
+  "msg": "Not exist",
+  "user": null
+}
+
+# Failed (Password is not matched)
+{
+  "status": 400,
+  "msg": "Password is not matched",
+  "user": null
 }
 ```
 
@@ -211,7 +228,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/deleteUser -H 'Content-Type: Applic
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/updateUserInfo -H 'Content-Type: Application/json' -d '
 {
-    "sessionToken": "58b0431abf825f7020669fbe",
+    "sessionToken": "58b10b75bf825f2a27e2ad6f",
     "profileImageUrl": "static/img/profile/test.png",
     "pushDuration": 31536000,
     "lastLoginAlarmDuration": 31536000
@@ -249,7 +266,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/updateUserInfo -H 'Content-Type: Ap
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Application/json' -d '
 {
-	"sessionToken": "58ac500abf825f120f773d22"
+	"sessionToken": "58b10b75bf825f2a27e2ad6f"
 }
 '
 ```
@@ -265,42 +282,35 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
   "status": 200,
   "msg": "OK",
   "user": {
+    "status": "normal",
     "userName": "sjkim",
-    "_id": "58b0431abf825f7020669fbe",
     "receivers": [],
     "pushDuration": 31536000,
+    "lastLoginAlarmDuration": 31536000,
     "todaysQuestion": {
-      "questionID": "58b04311bf825f7020669fbd",
-      "deliveredAt": 1487946522
+      "questionID": "58b10b70bf825f2a27e2ad6d",
+      "deliveredAt": 1487997813
     },
-    "profileImageUrl": "",
+    "profileImageUrl": "static/img/profile/test.png",
     "birthDay": 498841200,
     "phoneNumber": "010-1234-7277",
-    "lastLoginTime": 1487946522,
+    "lastLoginTime": 1488001827,
     "willitems": {
-      "58b04311bf825f7020669fbd": {
-        "willitemID": "58b0438ebf825f7020669fbf",
-        "modifiedAt": 1487946656
+      "58b10b70bf825f2a27e2ad6d": {
+        "willitemID": "58b10ba0bf825f2a27e2ad70",
+        "modifiedAt": 1487997905
       }
     },
     "password": "sjsj!",
-    "deviceToken": ""
+    "deviceToken": "",
+    "userID": "58b10b75bf825f2a27e2ad6f"
   }
 }
 
-# Success (
-
-# Not existing user
+# Failed (Not existing user)
 {
   "status": 400,
   "msg": "Not exist",
-  "user": null
-}
-
-# Deleted user
-{
-  "status": 400,
-  "msg": "Deleted User",
   "user": null
 }
 ```
@@ -391,7 +401,7 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/addQuestion -H 'Content-Type: Appli
 ```
 curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Application/json' -d '
 {
-	"questionID": "58adb8b2bf825f3c04f4d319"
+	"questionID": "58b11c49bf825f2b805f6f04"
 }
 '
 ```
@@ -408,10 +418,10 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getQuestion -H 'Content-Type: Appli
   "status": 200,
   "msg": "OK",
   "question": {
-    "answered": 0,
-    "_id": "58adb8b2bf825f3c04f4d319",
-    "question": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
-    "registeredTime": 1487780018
+    "questionID": "58b11c49bf825f2b805f6f04",
+    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
+    "registeredTime": 1488002121,
+    "answered": 0
   }
 }
 ```
@@ -444,10 +454,60 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getTodaysQuestion -H 'Content-Type:
   "status": 200,
   "msg": "OK",
   "question": {
-    "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
-    "questionID": "58ae5b08bf825f489ae9ff86",
-    "deliveredAt": 1487823502,
+    "text": "좋아하는 음식은?",
+    "questionID": "58b10b70bf825f2a27e2ad6d",
+    "deliveredAt": 1487997813,
     "answered": 0
+  },
+  "willitem": {
+    "status": "normal",
+    "question": {
+      "questionID": "58b10b70bf825f2a27e2ad6d",
+      "text": "좋아하는 음식은?"
+    },
+    "answers": [
+      {
+        "answerVideo": null,
+        "answerText": "사케동도 좋아함",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997905,
+        "answerID": "58b10ba0bf825f2a27e2ad70_2",
+        "mediaHeight": 128,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997905
+      },
+      {
+        "answerVideo": null,
+        "answerText": "카레카레카레",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997882,
+        "answerID": "58b10ba0bf825f2a27e2ad70_1",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997882
+      },
+      {
+        "answerVideo": null,
+        "answerText": "청국장",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997856,
+        "answerID": "58b10ba0bf825f2a27e2ad70_0",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997856
+      }
+    ],
+    "willitemID": "58b10ba0bf825f2a27e2ad70",
+    "authorID": "58b10b75bf825f2a27e2ad6f",
+    "modifiedAt": 1487997905,
+    "createdAt": 1487997856,
+    "size": 3
   }
 }
 ```
@@ -517,8 +577,8 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createAnswer -H 'Content-Type: Appl
 {
   "status": 200,
   "msg": "OK",
-  "willitemID": "58b0438ebf825f7020669fbf",
-  "answerID": "1"
+  "willitemID": "58b10ba0bf825f2a27e2ad70",
+  "answerID": "58b10ba0bf825f2a27e2ad70_3"
 }
 ```
 
@@ -568,33 +628,65 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItem -H 'Content-Type: Appli
   "msg": "OK",
   "willitem": {
     "status": "normal",
-    "questionID": "58b04311bf825f7020669fbd",
-    "answers": {
-      "0": {
-        "answerVideo": "",
-        "answerText": "음.. 딱히 그런적 없는 듯?",
-        "receivers": [],
-        "status": "normal",
-        "modifiedAt": 1487946638,
-        "answerPhoto": "",
-        "createdAt": 1487946638
-      },
-      "1": {
-        "answerVideo": "",
-        "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
-        "receivers": [],
-        "status": "normal",
-        "modifiedAt": 1487946656,
-        "_id": "1",
-        "answerPhoto": "",
-        "createdAt": 1487946656
-      }
+    "question": {
+      "questionID": "58b10b70bf825f2a27e2ad6d",
+      "text": "좋아하는 음식은?"
     },
-    "authorID": "58b0431abf825f7020669fbe",
-    "modifiedAt": 1487946656,
-    "_id": "58b0438ebf825f7020669fbf",
-    "createdAt": 1487946638,
-    "size": 2
+    "answers": [
+      {
+        "answerVideo": null,
+        "answerText": "kimchi",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1488002666,
+        "answerID": "58b10ba0bf825f2a27e2ad70_3",
+        "mediaHeight": 0,
+        "mediaWidth": 0,
+        "answerPhoto": null,
+        "createdAt": 1488002666
+      },
+      {
+        "answerVideo": null,
+        "answerText": "사케동도 좋아함",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997905,
+        "answerID": "58b10ba0bf825f2a27e2ad70_2",
+        "mediaHeight": 128,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997905
+      },
+      {
+        "answerVideo": null,
+        "answerText": "카레카레카레",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997882,
+        "answerID": "58b10ba0bf825f2a27e2ad70_1",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997882
+      },
+      {
+        "answerVideo": null,
+        "answerText": "청국장",
+        "receivers": [],
+        "status": "normal",
+        "modifiedAt": 1487997856,
+        "answerID": "58b10ba0bf825f2a27e2ad70_0",
+        "mediaHeight": null,
+        "mediaWidth": null,
+        "answerPhoto": null,
+        "createdAt": 1487997856
+      }
+    ],
+    "willitemID": "58b10ba0bf825f2a27e2ad70",
+    "authorID": "58b10b75bf825f2a27e2ad6f",
+    "modifiedAt": 1488002666,
+    "createdAt": 1487997856,
+    "size": 4
   }
 }
 ```
@@ -632,81 +724,67 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getWillItems -H 'Content-Type: Appl
     {
       "status": "normal",
       "question": {
-        "text": "재밌게 봤던 영화가 있나요?",
-        "_id": "58b064dcbf825f79be010885"
+        "questionID": "58b10b70bf825f2a27e2ad6d",
+        "text": "좋아하는 음식은?"
       },
-      "answers": {
-        "0": {
-          "answerVideo": "",
-          "answerText": "스파이더맨 (2는 재미없었음)",
+      "answers": [
+        {
+          "answerVideo": null,
+          "answerText": "kimchi",
           "receivers": [],
           "status": "normal",
-          "modifiedAt": 1487955188,
-          "answerPhoto": "",
-          "createdAt": 1487955188
+          "modifiedAt": 1488002666,
+          "answerID": "58b10ba0bf825f2a27e2ad70_3",
+          "mediaHeight": 0,
+          "mediaWidth": 0,
+          "answerPhoto": null,
+          "createdAt": 1488002666
+        },
+        {
+          "answerVideo": null,
+          "answerText": "사케동도 좋아함",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487997905,
+          "answerID": "58b10ba0bf825f2a27e2ad70_2",
+          "mediaHeight": 128,
+          "mediaWidth": null,
+          "answerPhoto": null,
+          "createdAt": 1487997905
+        },
+        {
+          "answerVideo": null,
+          "answerText": "카레카레카레",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487997882,
+          "answerID": "58b10ba0bf825f2a27e2ad70_1",
+          "mediaHeight": null,
+          "mediaWidth": null,
+          "answerPhoto": null,
+          "createdAt": 1487997882
+        },
+        {
+          "answerVideo": null,
+          "answerText": "청국장",
+          "receivers": [],
+          "status": "normal",
+          "modifiedAt": 1487997856,
+          "answerID": "58b10ba0bf825f2a27e2ad70_0",
+          "mediaHeight": null,
+          "mediaWidth": null,
+          "answerPhoto": null,
+          "createdAt": 1487997856
         }
-      },
-      "authorID": "58b0431abf825f7020669fbe",
-      "modifiedAt": 1487955188,
-      "_id": "58b064f4bf825f7020669fc0",
-      "createdAt": 1487955188,
-      "size": 1
-    },
-    {
-      "status": "normal",
-      "question": {
-        "text": "현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?",
-        "_id": "58b04311bf825f7020669fbd"
-      },
-      "answers": {
-        "0": {
-          "answerVideo": "",
-          "answerText": "음.. 딱히 그런적 없는 듯?",
-          "receivers": [],
-          "status": "normal",
-          "modifiedAt": 1487946638,
-          "answerPhoto": "",
-          "createdAt": 1487946638
-        },
-        "1": {
-          "answerVideo": "",
-          "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
-          "receivers": [],
-          "status": "normal",
-          "modifiedAt": 1487946656,
-          "_id": "1",
-          "answerPhoto": "",
-          "createdAt": 1487946656
-        },
-        "2": {
-          "answerVideo": "",
-          "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
-          "receivers": [],
-          "status": "normal",
-          "modifiedAt": 1487948453,
-          "_id": "2",
-          "answerPhoto": "",
-          "createdAt": 1487948453
-        },
-        "3": {
-          "answerVideo": "",
-          "answerText": "어렸을 때 스파이더맨 보고 나서 그런적 있음.",
-          "receivers": [],
-          "status": "normal",
-          "modifiedAt": 1487948468,
-          "_id": "3",
-          "answerPhoto": "",
-          "createdAt": 1487948468
-        }
-      },
-      "authorID": "58b0431abf825f7020669fbe",
-      "modifiedAt": 1487948468,
-      "_id": "58b0438ebf825f7020669fbf",
-      "createdAt": 1487946638,
+      ],
+      "willitemID": "58b10ba0bf825f2a27e2ad70",
+      "authorID": "58b10b75bf825f2a27e2ad6f",
+      "modifiedAt": 1488002666,
+      "createdAt": 1487997856,
       "size": 4
     }
   ],
-  "size": 2
+  "size": 1
 }
 ```
 
