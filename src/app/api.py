@@ -321,8 +321,8 @@ class RequestHandler(tornado.web.RequestHandler):
                           'answerVideo': data.get('answerVideo', None),
                           'receivers': data.get('receivers', []),
                           'createdAt': int(time.time()),
-                          'mediaWidth': data.get('mediaWidth', None),
-                          'mediaHeight': data.get('mediaHeight', None),
+                          'mediaWidth': data.get('mediaWidth', 0),
+                          'mediaHeight': data.get('mediaHeight', 0),
                           'modifiedAt': int(time.time()),
                           'status': 'normal',
                           }
