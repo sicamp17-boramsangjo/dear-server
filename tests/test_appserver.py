@@ -407,10 +407,16 @@ class AppServerTest(unittest.TestCase):
         r2 = requests.post(url_add_receiver, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
 
-        #get receiver
+        # get receiver
         # url_get_receivers = self.url_root + 'getReceivers'
         # data3 = {"sessionToken": r1['sessionToken']}
         # print(data3)
         # r3 = requests.post(url_get_receivers, data=json.dumps(data3)).json()
         # print(r3)
         # self.assertTrue(r3['status'] == 200)
+
+        # remove receiver
+        # data4 = {"sessionToken": r1['sessionToken'], 'receiverID': r2['receiverID']}
+        # url_remove_receiver = self.url_root + 'removeReceiver'
+        # r4 = requests.post(url_remove_receiver, data=json.dumps(data4)).json()
+        # self.assertTrue(r4['status'] == 200)

@@ -32,6 +32,10 @@
             "required": ["sessionToken", "name", "phoneNumber"],
             "allowed": []
         },
+        "removeReceiver": {
+            "required": ["sessionToken", "receiverID"],
+            "allowed": []
+        },
         "getReceivers": {
             "required": ["sessionToken"],
             "allowed": []

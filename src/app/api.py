@@ -30,6 +30,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'deleteUser': self.delete_user,
             'updateUserInfo': self.update_user_info,
             'addReceiver': self.add_receiver,
+            'removeReceiver': self.remove_receiver,
             'getReceivers': self.get_receivers,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
@@ -264,11 +265,26 @@ class RequestHandler(tornado.web.RequestHandler):
             record = {'sessionToken': data['sessionToken'],
                       'name': data['name'],
                       'phoneNumber': data['phoneNumber'],
+                      'status': 'normal',
                       'registeredTime': int(time.time())
                       }
             receiver_id = receivers.insert_one(record)
 
             self.write({'status': 200, 'msg': 'OK', 'receiverID': str(receiver_id.inserted_id)})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def remove_receiver(self, data):
+        try:
+            record = DB.receivers.find_one({'_id': ObjectId(data['receiverID'])})
+            if record:
+                DB.receivers.find_one_and_update({'_id': ObjectId(record['receiverID'])},
+                                                 {'$set': {'status': 'deleted'}})
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
