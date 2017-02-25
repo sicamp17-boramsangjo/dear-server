@@ -33,6 +33,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'getQuestion': self.get_question,
             'getTodaysQuestion': self.get_todays_question,
             'createAnswer': self.create_answer,
+            'deleteAnswer': self.delete_answer,
             'getWillItem': self.get_willitem,
             'getWillItems': self.get_willitems,
         }
@@ -345,6 +346,25 @@ class RequestHandler(tornado.web.RequestHandler):
                     self.write({'status': 200, 'msg': 'OK', 'answerID': str(0), 'willitemID': str(willitem_id.inserted_id)})
             else:
                 self.write({'status': 400, 'msg': 'Invalid seesionToken or questionID', 'question': None})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def delete_answer(self, data):
+        try:
+            user = DB.users.find_one({'_id': ObjectId(data['sessionToken'])})
+            print(user)
+            willitem_id = user['willitems'][data['questionID']]['willitemID']
+            print(willitem_id)
+            if willitem_id:
+                DB.items.find_one_and_update({'_id': willitem_id},
+                                             {'$set': {'answers.%s.status' % (data['answerID']): 'deleted'},
+                                              '$inc': {'size': -1}
+                                              })
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Invalid sessionToken or questionID'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))

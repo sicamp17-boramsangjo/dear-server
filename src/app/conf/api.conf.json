@@ -44,6 +44,10 @@
             "required": ["sessionToken", "questionID"],
             "allowed": ["answerText", "answerPhoto", "answerVideo", "receivers", "mediaWidth", "mediaHeight"]
         },
+        "deleteAnswer": {
+            "required": ["sessionToken", "questionID", "answerID"],
+            "allowed": []
+        },
         "getWillItem": {
             "required": ["sessionToken", "willitemID"],
             "allowed": []

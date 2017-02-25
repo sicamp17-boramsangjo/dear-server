@@ -336,6 +336,21 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(willitems[1] == willitem)
         self.assertTrue(willitems[0] == willitem2)
 
+        # check delete answer
+        url_delete_answer = self.url_root + 'deleteAnswer'
+        data_delete_answer = {
+            'sessionToken': data_ans2['sessionToken'],
+            'questionID': data_ans2['questionID'],
+            'answerID': r_create_ans_a1['answerID']
+        }
+        r_get_delete_answer = requests.post(url_delete_answer, data=json.dumps(data_delete_answer)).json()
+        self.assertTrue(r_get_delete_answer['status'] == 200)
+
+        r_get_willitem2 = requests.post(url_get_willitem, data=json.dumps(data_get_willitem)).json()
+        self.assertTrue(r_get_willitem2['status'] == 200)
+        willitem2 = r_get_willitem2['willitem']
+        self.assertTrue(willitem2['size'] == 0)
+
     def test06_logout(self):
         '''
         logout
