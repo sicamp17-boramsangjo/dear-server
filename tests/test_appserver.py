@@ -216,8 +216,3 @@ class AppServerTest(unittest.TestCase):
         r3 = requests.post(url_check_already_join, data=json.dumps(data3)).json()
         self.assertTrue(r3['status'] == 200)
         self.assertTrue(r3['result'] == False)
-
-        # invalid phoneNumber
-        data4 = {"phoneNumber": u"01082741252"}
-        r4 = requests.post(url_check_already_join, data=json.dumps(data4)).json()
-        self.assertTrue(r4['status'] == 400)

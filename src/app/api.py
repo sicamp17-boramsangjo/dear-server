@@ -135,9 +135,7 @@ class RequestHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def check_already_join(self, data):
         try:
-            if not self.is_valid_phone_num(data['phoneNumber']):
-                self.write({'status': 400, 'msg': 'Invalid phone number format'})
-            elif self.is_existing_user(data['phoneNumber']):
+            if self.is_existing_user(data['phoneNumber']):
                 self.write({'status': 200, 'msg': 'OK', 'result': True})
             else:
                 self.write({'status': 200, 'msg': 'Not exist', 'result': False})
