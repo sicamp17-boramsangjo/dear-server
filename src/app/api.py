@@ -316,13 +316,13 @@ class RequestHandler(tornado.web.RequestHandler):
             user = self.find_user(data['sessionToken'])
             question = self.find_question(data['questionID'])
             if user and question:
-                answer = {'answerText': data.get('answerText', ''),
-                          'answerPhoto': data.get('answerPhoto', ''),
-                          'answerVideo': data.get('answerVideo', ''),
+                answer = {'answerText': data.get('answerText', None),
+                          'answerPhoto': data.get('answerPhoto', None),
+                          'answerVideo': data.get('answerVideo', None),
                           'receivers': data.get('receivers', []),
                           'createdAt': int(time.time()),
-                          'mediaWidth': data.get('mediaWidth', ''),
-                          'mediaHeight': data.get('mediaHeight', ''),
+                          'mediaWidth': data.get('mediaWidth', None),
+                          'mediaHeight': data.get('mediaHeight', None),
                           'modifiedAt': int(time.time()),
                           'status': 'normal',
                           }
