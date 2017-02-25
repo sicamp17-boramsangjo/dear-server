@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
-import re
 import sys
 import time
 
@@ -24,7 +23,11 @@ class RequestHandler(tornado.web.RequestHandler):
         self.opt = json.load(open(config_fname))
         self.post_book = {
             'createUser': self.create_user,
+            'checkAlreadyJoin': self.check_already_join,
+            'login': self.login,
             'getUserInfo': self.get_user_info,
+            'deleteUser': self.delete_user,
+            'updateUserInfo': self.update_user_info,
             'addQuestion': self.add_question,
             'getQuestion': self.get_question,
             'getTodaysQuestion': self.get_todays_question,
@@ -73,12 +76,6 @@ class RequestHandler(tornado.web.RequestHandler):
         except:
             return False
 
-    def is_valid_phone_num(self, phone_num):
-        if re.match('^01\d-\d{4}-\d{4}$', phone_num):
-            return True
-        else:
-            return False
-
     def is_existing_user(self, phone_num):
         if DB.users.find_one({'phoneNumber': phone_num}):
             return True
@@ -86,7 +83,17 @@ class RequestHandler(tornado.web.RequestHandler):
             return False
 
     def find_user(self, user_key):
-        return DB.users.find_one({'_id': ObjectId(user_key)})
+        user = DB.users.find_one({'_id': ObjectId(user_key)})
+        if user:
+            if user['status'] == 'deleted':
+                return None
+            else:
+                return user
+        else:
+            return None
+
+    def find_user_by_phonenumber(self, phone_number):
+        return DB.users.find_one({'phoneNumber': phone_number})
 
     def find_willitem(self, willitem_key):
         return DB.items.find_one({'_id': ObjectId(willitem_key)})
@@ -120,8 +127,6 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             if not self.is_valid_ts(data['birthDay']):
                 self.write_error(400, 'Invalid birthDay value')
-            elif not self.is_valid_phone_num(data['phoneNumber']):
-                self.write_error(400, 'Invalid phone number format')
             elif self.is_existing_user(data['phoneNumber']):
                 self.write_error(400, 'The phone number is already exist')
             else:
@@ -134,8 +139,8 @@ class RequestHandler(tornado.web.RequestHandler):
                               'phoneNumber': data['phoneNumber'],
                               'password': data['password'],
                               'birthDay': data['birthDay'],
-                              'deviceToken': "",
-                              'profileImageUrl': "",
+                              'deviceToken': '',
+                              'profileImageUrl': '',
                               'pushDuration': self.opt['settings']['user']['pushDuration'],
                               'willitems': {},
                               'receivers': [],
@@ -143,12 +148,41 @@ class RequestHandler(tornado.web.RequestHandler):
                               'todaysQuestion': {
                                   'questionID': str(todays_question['_id']),
                                   'deliveredAt': now_ts
-                                  }
+                                  },
+                              'status': 'normal'
                               }
                     users = DB.users
                     user_id = users.insert_one(record)
                     self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
                     self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def login(self, data):
+        try:
+            record = self.find_user_by_phonenumber(data['phoneNumber'])
+            if record:
+                if record['password'] == data['password']:
+                    DB.users.find_one_and_update({'_id': ObjectId(record['_id'])},
+                                                 {'$set': {'lastLoginTime': int(time.time())}}
+                                                )
+                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(record['_id'])})
+                else:
+                    self.write({'status': 400, 'msg': 'Password is not matched', 'user': None})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist', 'user': None})
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def check_already_join(self, data):
+        try:
+            if self.is_existing_user(data['phoneNumber']):
+                self.write({'status': 200, 'msg': 'OK', 'result': True})
+            else:
+                self.write({'status': 200, 'msg': 'Not exist', 'result': False})
+            self.finish()
         except Exception as e:
             self.write_error(500, str(e))
 
@@ -161,6 +195,37 @@ class RequestHandler(tornado.web.RequestHandler):
                 self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def delete_user(self, data):
+        try:
+            record = self.find_user(data['sessionToken'])
+            if record:
+                record['_id'] = str(record['_id'])
+                users = DB.users
+                users.find_one_and_update({'_id': ObjectId(record['_id'])}, {'$set': {'status': "deleted"}})
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def update_user_info(self, data):
+        try:
+            record = self.find_user(data['sessionToken'])
+            if record:
+                fields = {'profileImageUrl', 'pushDuration', 'lastLoginAlarmDuration', 'deviceToken'}
+                record_updated = {f: v for f, v in data.iteritems() if f in fields}
+                if len(record_updated) > 0:
+                    DB.users.find_one_and_update({'_id': record['_id']}, {'$set': record_updated})
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
@@ -292,7 +357,6 @@ class RequestHandler(tornado.web.RequestHandler):
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
-
 
 
 if __name__ == "__main__":

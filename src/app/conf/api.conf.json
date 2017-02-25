@@ -4,9 +4,25 @@
             "required": ["userName", "phoneNumber", "password", "birthDay"],
             "allowed": []
         },
+        "checkAlreadyJoin": {
+            "required": ["phoneNumber"],
+            "allowed": []
+        },
+        "login": {
+            "required": ["phoneNumber", "password"],
+            "allowed": []
+        },
         "getUserInfo": {
             "required": ["sessionToken"],
             "allowed": []
+        },
+        "deleteUser": {
+            "required": ["sessionToken"],
+            "allowed": []
+        },
+        "updateUserInfo": {
+            "required": ["sessionToken"],
+            "allowed": ["pushDuration", "lastLoginAlarmDuration", "profileImageUrl", "deviceToken"]
         },
         "addQuestion": {
             "required": ["text"],

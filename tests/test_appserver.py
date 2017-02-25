@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import time
 import ujson as json
 import unittest
 
@@ -22,6 +22,7 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
 
 class AppServerTest(unittest.TestCase):
     url_root = 'http://indiweb08.cafe24.com:23233/app/'
+    # url_root = 'http://localhost:23233/app/'
 
     @classmethod
     def setUp(self):
@@ -33,7 +34,7 @@ class AppServerTest(unittest.TestCase):
 
     def test00(self):
         '''
-        user creating & checking
+        user creating & checking & login
         '''
         url = self.url_root + 'addQuestion'
         data1 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
@@ -45,9 +46,20 @@ class AppServerTest(unittest.TestCase):
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
         self.assertTrue(r1['status'] == 200)
 
-        data2 = {"userName": u"김철수", "phoneNumber": u"010-8274-1252", "password": u"sjsj!", "birthDay": 49881200}
+        data2 = {"userName": u"김철수", "phoneNumber": u"010-8274-1252", "password": u"sjsjbb2!", "birthDay": 49881200}
         r2 = requests.post(url_create, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
+
+        url_login = self.url_root + 'login'
+        data_login1 = {"phoneNumber": "010-8274-1252", "password": "sjsjbb2!"}
+        r_login1 = requests.post(url_login, data=json.dumps(data_login1)).json()
+        self.assertTrue(r_login1['status'] == 200)
+        self.assertTrue(r_login1['sessionToken'] == r2['sessionToken'])
+
+        # password matching failed
+        data_login2 = {"phoneNumber": "010-8274-1252", "password": "sjsjbb2"}
+        r_login2 = requests.post(url_login, data=json.dumps(data_login2)).json()
+        self.assertTrue(r_login2['status'] == 400)
 
         url_get = self.url_root + 'getUserInfo'
         for rr, dd in [(r1, data1), (r2, data2)]:
@@ -55,14 +67,11 @@ class AppServerTest(unittest.TestCase):
             for f in ['userName', 'password', 'phoneNumber', 'birthDay']:
                 self.assertTrue(ret['status'] == 200)
                 self.assertTrue(dd[f] == ret['user'][f])
+                self.assertTrue(ret['user']['status'] == "normal")
 
         # duplicate phone number
         dupled_data = {"userName": u"artemis", "phoneNumber": u"010-1274-1352", "password": u"38fjfij1", "birthDay": 149881200}
         self.assertTrue(requests.post(url_create, data=json.dumps(dupled_data)).json()['status'] == 400)
-
-        # invalid phone number
-        invalid_data = {"userName": u"김철수", "phoneNumber": u"01082741252", "password": u"sjsj!", "birthDay": 49881200}
-        self.assertTrue(requests.post(url_create, data=json.dumps(invalid_data)).json()['status'] == 400)
 
         # invalid birthday
         invalid_data = {"userName": u"김철수", "phoneNumber": u"010-8274-1252", "password": u"sjsj!", "birthDay": 498812002727}
@@ -113,6 +122,105 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r2['status'] == 200)
         self.assertTrue('question' in r2)
 
+    def test03(self):
+        '''
+        user update info
+        '''
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # insert user
+        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # update user
+        url = self.url_root + 'updateUserInfo'
+        data2 = {"sessionToken": r1['sessionToken']}
+        r2 = requests.post(url, data=json.dumps(data2)).json()
+        print 'r2:', r2
+        self.assertTrue(r2['status'] == 200)
+
+        # update user including option fields
+        data3 = {"sessionToken": r1['sessionToken'], "profileImageUrl": u"/static/profile_chh.png", "pushDuration": 15768000, "lastLoginAlarmDuration": 7884000}
+        r3 = requests.post(url, data=json.dumps(data3)).json()
+        self.assertTrue(r3['status'] == 200)
+
+        url_get = self.url_root + 'getUserInfo'
+        ret = requests.post(url_get, data=json.dumps({"sessionToken": r1['sessionToken']})).json()
+        self.assertTrue(ret['status'] == 200)
+        for f in ['profileImageUrl', 'pushDuration', 'lastLoginAlarmDuration']:
+            self.assertTrue(data3[f] == ret['user'][f])
+
+        # invalid sessionToken
+        data4 = {"sessionToken": u"58ac500abf825f120f773d22"}
+        r4 = requests.post(url, data=json.dumps(data4)).json()
+        self.assertTrue(r4['status'] == 400)
+
+    def test04(self):
+        '''
+        delete user
+        '''
+        url = self.url_root + 'deleteUser'
+
+        # insert question
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # insert user
+        data1 = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # delete user
+        data2 = {"sessionToken": r1['sessionToken']}
+        r2 = requests.post(url, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+
+        url_get = self.url_root + 'getUserInfo'
+        ret = requests.post(url_get, data=json.dumps({"sessionToken": r1['sessionToken']})).json()
+        self.assertTrue(ret['status'] == 400)
+
+        # invalid sessionToken
+        data3 = {"sessionToken": u"58ac500abf825f120f773d22"}
+        r3 = requests.post(url, data=json.dumps(data3)).json()
+        self.assertTrue(r3['status'] == 400)
+
+    def test05(self):
+        '''
+        check already join
+        '''
+        url_check_already_join = self.url_root + 'checkAlreadyJoin'
+
+        # insert question
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # create user
+        data1 = {"userName": u"hhcha", "phoneNumber": u"011-1234-1233", "password": u"hhhh!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+
+        # joined phoneNumber
+        data2 = {"phoneNumber": data1['phoneNumber']}
+        r2 = requests.post(url_check_already_join, data=json.dumps(data2)).json()
+        self.assertTrue(r2['status'] == 200)
+        self.assertTrue(r2['result'] == True)
+
+        # not joined phoneNumber
+        data3 = {"phoneNumber": u"019-1234-1233"}
+        r3 = requests.post(url_check_already_join, data=json.dumps(data3)).json()
+        self.assertTrue(r3['status'] == 200)
+        self.assertTrue(r3['result'] == False)
 
     def test03_willitem01(self):
         '''
@@ -192,6 +300,7 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r_get_willitems['size'] == 1)
         willitems = r_get_willitems['willitems']
         self.assertTrue(willitems[0] == willitem)
+        time.sleep(1)
 
         # add a answer for another question
         url_create_ans = self.url_root + 'createAnswer'
@@ -220,5 +329,5 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(r_get_willitems['status'] == 200)
         self.assertTrue(r_get_willitems['size'] == 2)
         willitems = r_get_willitems['willitems']
-        self.assertTrue(willitems[0] == willitem)
-        self.assertTrue(willitems[1] == willitem2)
+        self.assertTrue(willitems[1] == willitem)
+        self.assertTrue(willitems[0] == willitem2)

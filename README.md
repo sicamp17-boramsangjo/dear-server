@@ -66,11 +66,32 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/createUser -H 'Content-Type: Applic
 |---|---|---|---|
 | phoneNumber | O | string | `01D-DDD-DDDD` |
 
+```
+curl -i -XPOST indiweb08.cafe24.com:8888/app/checkAlreadyJoin -H 'Content-Type: Application/json' -d '
+{
+	"phoneNumber": "010-1234-7214"
+}
+'
+```
+
 ##### Response
 | property | type |
 |---|---|
 | result | bool |
 
+```
+# Success
+{
+  "status": 200,
+  "msg": "OK"
+}
+
+# Failed (Not exist)
+{
+  "status": 200,
+  "msg": "Not exist"
+}
+```
 
 ### app/login
 기존 회원이 로그인한다.
@@ -248,8 +269,15 @@ curl -i -XPOST indiweb08.cafe24.com:8888/app/getUserInfo -H 'Content-Type: Appli
 
 # Not existing user
 {
-  "status": 200,
+  "status": 400,
   "msg": "Not exist",
+  "user": null
+}
+
+# Deleted user
+{
+  "status": 400,
+  "msg": "Deleted User",
   "user": null
 }
 ```
