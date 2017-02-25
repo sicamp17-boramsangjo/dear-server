@@ -137,6 +137,9 @@ class RequestHandler(tornado.web.RequestHandler):
     def generate_answer_id(self, willitem_id, num_answers):
         return '%s_%s' % (willitem_id, num_answers)
 
+    # def generate_receiver_id(self, session_token_id, num_receivers):
+    #     return '%s_%s' % (session_token_id, num_receivers)
+
     @tornado.gen.coroutine
     def create_user(self, data):
         try:
@@ -158,7 +161,7 @@ class RequestHandler(tornado.web.RequestHandler):
                               'profileImageUrl': '',
                               'pushDuration': self.opt['settings']['user']['pushDuration'],
                               'willitems': {},
-                              'receivers': [],
+                              'receivers': {},
                               'lastLoginTime': now_ts,
                               'todaysQuestion': {
                                   'questionID': todays_question['questionID'],
@@ -258,23 +261,32 @@ class RequestHandler(tornado.web.RequestHandler):
         except Exception as e:
             self.write_error(500, str(e))
 
+    # TODO implement
     @tornado.gen.coroutine
     def add_receiver(self, data):
         try:
-            receivers = DB.receivers
-            record = {'sessionToken': data['sessionToken'],
-                      'name': data['name'],
-                      'phoneNumber': data['phoneNumber'],
-                      'status': 'normal',
-                      'registeredTime': int(time.time())
-                      }
-            receiver_id = receivers.insert_one(record)
-
-            self.write({'status': 200, 'msg': 'OK', 'receiverID': str(receiver_id.inserted_id)})
+            user = DB.users.find_one({'_id': ObjectId(data['sessionToken'])})
+            if user:
+                receiver = {'name': data['name'],
+                            'phoneNumber': data['phoneNumber'],
+                            'status': 'normal',
+                            'registeredTime': int(time.time())
+                            }
+                DB.user.find_one_and_update(
+                    {'_id': ObjectId(data['sessionToken'])},
+                    {'$set': {
+                        'receivers.%s' % (data['sessionToken'] + '_' + str(len(user['receivers'])) ): receiver
+                        }
+                    }
+                )
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
 
+    # TODO implement
     @tornado.gen.coroutine
     def remove_receiver(self, data):
         try:
@@ -289,6 +301,7 @@ class RequestHandler(tornado.web.RequestHandler):
         except Exception as e:
             self.write_error(500, str(e))
 
+    # TODO implement
     @tornado.gen.coroutine
     def get_receivers(self, data):
         try:

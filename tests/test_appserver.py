@@ -18,8 +18,6 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
     print '%s items deleted from %s.items' % (int(result.deleted_count), db_name)
     result = db.questions.delete_many({})
     print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
-    result = db.receivers.delete_many({})
-    print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
 
 
 def generate_answer_id(willitem_id, size):
@@ -400,12 +398,20 @@ class AppServerTest(unittest.TestCase):
         data1 = {"userName": u"hhcha", "phoneNumber": u"011-1234-1233", "password": u"hhhh!", "birthDay": 49881200}
         url_create = self.url_root + 'createUser'
         r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        # print(r1)
         self.assertTrue(r1['status'] == 200)
 
         # add receiver
-        data2 = {"sessionToken": r1['sessionToken'], "name": u"홍길동", "phoneNumber": u"011-1234-1233!"}
+        data2 = {"sessionToken": r1['sessionToken'], "name": u"홍길동", "phoneNumber": u"011-1234-1233"}
         r2 = requests.post(url_add_receiver, data=json.dumps(data2)).json()
+        # print(r2)
         self.assertTrue(r2['status'] == 200)
+
+        # add receiver
+        data3 = {"sessionToken": r1['sessionToken'], "name": u"심청이", "phoneNumber": u"010-1222-3344"}
+        r3 = requests.post(url_add_receiver, data=json.dumps(data3)).json()
+        # print(r3)
+        self.assertTrue(r3['status'] == 200)
 
         # get receiver
         # url_get_receivers = self.url_root + 'getReceivers'
