@@ -25,6 +25,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'createUser': self.create_user,
             'checkAlreadyJoin': self.check_already_join,
             'login': self.login,
+            'logout': self.logout,
             'getUserInfo': self.get_user_info,
             'deleteUser': self.delete_user,
             'updateUserInfo': self.update_user_info,
@@ -86,6 +87,8 @@ class RequestHandler(tornado.web.RequestHandler):
         user = DB.users.find_one({'_id': ObjectId(user_key)})
         if user:
             if user['status'] == 'deleted':
+                return None
+            elif user['status'] == 'logout':
                 return None
             else:
                 return user
@@ -165,13 +168,28 @@ class RequestHandler(tornado.web.RequestHandler):
             if record:
                 if record['password'] == data['password']:
                     DB.users.find_one_and_update({'_id': ObjectId(record['_id'])},
-                                                 {'$set': {'lastLoginTime': int(time.time())}}
+                                                 {'$set': {'lastLoginTime': int(time.time()), 'status': 'normal'}}
                                                 )
                     self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(record['_id'])})
                 else:
                     self.write({'status': 400, 'msg': 'Password is not matched', 'user': None})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def logout(self, data):
+        try:
+            record = self.find_user(data['sessionToken'])
+            if record:
+                record['_id'] = str(record['_id'])
+                users = DB.users
+                users.find_one_and_update({'_id': ObjectId(record['_id'])}, {'$set': {'status': "logout", 'deviceToken': ""}})
+                self.write({'status': 200, 'msg': 'OK'})
+            else:
+                self.write({'status': 400, 'msg': 'Not exist'})
+            self.finish()
         except Exception as e:
             self.write_error(500, str(e))
 

@@ -12,6 +12,10 @@
             "required": ["phoneNumber", "password"],
             "allowed": []
         },
+        "logout": {
+            "required": ["sessionToken"],
+            "allowed": []
+        },
         "getUserInfo": {
             "required": ["sessionToken"],
             "allowed": []
