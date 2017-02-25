@@ -86,9 +86,7 @@ class RequestHandler(tornado.web.RequestHandler):
     def find_user(self, user_key):
         user = DB.users.find_one({'_id': ObjectId(user_key)})
         if user:
-            if user['status'] == 'deleted':
-                return None
-            elif user['status'] == 'logout':
+            if user['status'] != 'normal':
                 return None
             else:
                 return user
