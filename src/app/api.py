@@ -119,11 +119,10 @@ class RequestHandler(tornado.web.RequestHandler):
                 question = self.find_question(willitem['questionID'])
                 if question:
                     willitem['willitemID'] = willitem['willitemID']
-                    willitem['question'] = {'questionID': willitem['questionID'], 'text': question['text']}
+                    willitem['text'] = question['text']
                     willitem['answers'] = sorted(willitem['answers'].itervalues(),
                                                  key=lambda x: x['modifiedAt'],
                                                  reverse=True)
-                    willitem.pop('questionID')
                     return willitem, 'OK'
                 else:
                     return None, 'Question is not exist'

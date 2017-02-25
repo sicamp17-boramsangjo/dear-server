@@ -296,7 +296,7 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(willitem['size'] == 2)
         self.assertTrue(willitem['authorID'] == r_user['sessionToken'])
         self.assertTrue(willitem['status'] == 'normal')
-        self.assertTrue(willitem['question']['questionID'] == question_id)
+        self.assertTrue(willitem['questionID'] == question_id)
         answers = willitem['answers']
         self.assertTrue(len(answers) == 2)
         self.assertTrue(answers[1]['answerText'] == data_ans['answerText'])
