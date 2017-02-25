@@ -3,6 +3,7 @@ import datetime
 import logging
 import mimetypes
 import os
+import random
 import sys
 import time
 import uuid
@@ -135,8 +136,9 @@ class RequestHandler(tornado.web.RequestHandler):
         return self.id_postprocessing(r, 'invitationID') if r else None
 
     def get_random_question(self):
-        # not random yet...
-        r = DB.questions.find_one({})
+        num_questions = DB.questions.count()
+        random_offset = random.randint(0, num_questions - 1)
+        r = DB.questions.find().limit(-1).skip(random_offset).next()
         return self.id_postprocessing(r, 'questionID') if r else None
 
     def _get_willitem(self, data):
