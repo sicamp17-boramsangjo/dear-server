@@ -262,8 +262,7 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
-                # FIXME receivers to list
-                # rocord['receivers'] = self.get_receivers_as_list(record)
+                record['receivers'] = self.get_receivers_as_list(record)
                 self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
