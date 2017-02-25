@@ -85,7 +85,14 @@ class RequestHandler(tornado.web.RequestHandler):
             return False
 
     def find_user(self, user_key):
-        return DB.users.find_one({'_id': ObjectId(user_key)})
+        user = DB.users.find_one({'_id': ObjectId(user_key)})
+        if user:
+            if user['status'] == 'deleted':
+                return None
+            else:
+                return user
+        else:
+            return None
 
     def find_question(self, question_key):
         return DB.questions.find_one({'_id': ObjectId(question_key)})
@@ -148,11 +155,8 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
-                if record['status'] == 'deleted':
-                    self.write({'status': 400, 'msg': 'Deleted user', 'user': None})
-                else:
-                    record['_id'] = str(record['_id'])
-                    self.write({'status': 200, 'msg': 'OK', 'user': record})
+                record['_id'] = str(record['_id'])
+                self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
             self.finish()

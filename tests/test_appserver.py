@@ -180,7 +180,6 @@ class AppServerTest(unittest.TestCase):
         url_get = self.url_root + 'getUserInfo'
         ret = requests.post(url_get, data=json.dumps({"sessionToken": r1['sessionToken']})).json()
         self.assertTrue(ret['status'] == 400)
-        self.assertTrue(ret['msg'] == "Deleted user")
 
         # invalid sessionToken
         data3 = {"sessionToken": u"58ac500abf825f120f773d22"}
