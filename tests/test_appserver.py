@@ -251,6 +251,8 @@ class AppServerTest(unittest.TestCase):
         data_ans = {'sessionToken': r_user['sessionToken'],
                     'questionID': question_id,
                     'answerText': u'맨날 그래',
+                    'mediaWidth': 120,
+                    'mediaHeight': 80,
                     }
         r_create_ans = requests.post(url_create_ans, data=json.dumps(data_ans)).json()
         self.assertTrue(r_create_ans['status'] == 200)
@@ -291,6 +293,8 @@ class AppServerTest(unittest.TestCase):
         self.assertTrue(len(answers) == 2)
         self.assertTrue(answers[str(0)]['answerText'] == data_ans['answerText'])
         self.assertTrue(answers[str(1)]['answerText'] == data_ans2['answerText'])
+        self.assertTrue(answers[str(0)]['mediaWidth'] == data_ans['mediaWidth'])
+        self.assertTrue(answers[str(0)]['mediaHeight'] == data_ans['mediaHeight'])
 
         # check willitems
         url_get_willitems = self.url_root + 'getWillItems'

@@ -38,7 +38,7 @@
         },
         "createAnswer": {
             "required": ["sessionToken", "questionID"],
-            "allowed": ["answerText", "answerPhoto", "answerVideo", "receivers"]
+            "allowed": ["answerText", "answerPhoto", "answerVideo", "receivers", "mediaWidth", "mediaHeight"]
         },
         "getWillItem": {
             "required": ["sessionToken", "willitemID"],
