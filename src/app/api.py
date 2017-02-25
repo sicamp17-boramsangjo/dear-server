@@ -166,6 +166,10 @@ class RequestHandler(tornado.web.RequestHandler):
     def generate_answer_id(self, willitem_id, num_answers):
         return '%s_%s' % (willitem_id, num_answers)
 
+    def get_receivers_as_list(self, user):
+        receivers_filterd = {f: v for f, v in user['receivers'].iteritems() if v['status'] == 'normal'}
+        return sorted(receivers_filterd.itervalues(), key=lambda x: x['receiverID'])
+
     @tornado.gen.coroutine
     def create_user(self, data):
         try:
@@ -258,6 +262,8 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             record = self.find_user(data['sessionToken'])
             if record:
+                # FIXME receivers to list
+                # rocord['receivers'] = self.get_receivers_as_list(record)
                 self.write({'status': 200, 'msg': 'OK', 'user': record})
             else:
                 self.write({'status': 400, 'msg': 'Not exist', 'user': None})
@@ -345,8 +351,7 @@ class RequestHandler(tornado.web.RequestHandler):
         try:
             user = self.find_user(data['sessionToken'])
             if user:
-                receivers_filterd = {f: v for f, v in user['receivers'].iteritems() if v['status'] == 'normal'}
-                receivers = sorted(receivers_filterd.itervalues(), key=lambda x: x['receiverID'])
+                receivers = self.get_receivers_as_list(user)
                 self.write({'status': 200, 'msg': 'OK', 'receivers': receivers})
             else:
                 self.write({'status': 400, 'msg': 'Not exist'})
