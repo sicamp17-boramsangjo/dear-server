@@ -121,6 +121,7 @@ class AppServerTest(unittest.TestCase):
         r2 = requests.post(url_today, data=json.dumps(data2)).json()
         self.assertTrue(r2['status'] == 200)
         self.assertTrue('question' in r2)
+        self.assertTrue('willitem' not in r2)
 
     def test03(self):
         '''
@@ -141,7 +142,6 @@ class AppServerTest(unittest.TestCase):
         url = self.url_root + 'updateUserInfo'
         data2 = {"sessionToken": r1['sessionToken']}
         r2 = requests.post(url, data=json.dumps(data2)).json()
-        print 'r2:', r2
         self.assertTrue(r2['status'] == 200)
 
         # update user including option fields
@@ -244,6 +244,8 @@ class AppServerTest(unittest.TestCase):
         url_todayq = self.url_root + 'getTodaysQuestion'
         r_todayq = requests.post(url_todayq, data=json.dumps(data)).json()
         self.assertTrue(r_todayq['status'] == 200)
+        self.assertTrue('question' in r_todayq)
+        self.assertTrue('willitem' not in r_todayq)
         question_id = r_todayq['question']['questionID']
 
         # create 1st answer
@@ -305,6 +307,13 @@ class AppServerTest(unittest.TestCase):
         willitems = r_get_willitems['willitems']
         self.assertTrue(willitems[0] == willitem)
         time.sleep(1)
+
+        data_today2 = {'sessionToken': r_user['sessionToken']}
+        url_todayq2 = self.url_root + 'getTodaysQuestion'
+        r_todayq2 = requests.post(url_todayq2, data=json.dumps(data_today2)).json()
+        self.assertTrue(r_todayq2['status'] == 200)
+        self.assertTrue('willitem' in r_todayq2)
+        self.assertTrue(r_todayq2['willitem']['_id'] == willitem['_id'])
 
         # add a answer for another question
         url_create_ans = self.url_root + 'createAnswer'

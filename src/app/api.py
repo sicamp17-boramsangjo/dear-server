@@ -285,7 +285,14 @@ class RequestHandler(tornado.web.RequestHandler):
                               'questionID': str(question['_id']),
                               'deliveredAt': user['todaysQuestion']['deliveredAt'],
                               }
-                    self.write({'status': 200, 'msg': 'OK', 'question': record})
+                    res = {'status': 200, 'msg': 'OK', 'question': record}
+                    user_willitem = user['willitems'].get(record['questionID'], None)
+                    if user_willitem:
+                        willitem, _ = self._get_willitem({'sessionToken': data['sessionToken'],
+                                                          'willitemID': user_willitem['willitemID']})
+                        if willitem:
+                            res['willitem'] = willitem
+                    self.write(res)
                 else:
                     self.write({'status': 400, 'msg': 'Failed to find todaysQuestion', 'question': None})
             else:
