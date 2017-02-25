@@ -50,6 +50,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'createAnswer': self.create_answer,
             'getWillItem': self.get_willitem,
             'getWillItems': self.get_willitems,
+            'getWillItemsWithReceiver': self.get_willitems_with_receiver,
             'uploadImage': self.upload_image,
             'uploadVideo': self.upload_video,
             'getSessionTokenForReadOnly': self.get_sesseion_token_for_read_only,
@@ -162,6 +163,10 @@ class RequestHandler(tornado.web.RequestHandler):
                 return None, 'Invalid sessionToken'
         else:
             return None, 'The willitem is not exist'
+
+    def filter_answers_by_answer_id(self, receiver_id, willitem):
+        willitem['answers'] = [a for a in willitem['answers'] if receiver_id in a['receivers']]
+        return willitem
 
     def generate_answer_id(self, willitem_id, num_answers):
         return '%s_%s' % (willitem_id, num_answers)
@@ -494,6 +499,27 @@ class RequestHandler(tornado.web.RequestHandler):
                 willitems = map(self._get_willitem, Q)
                 willitems = [w for w, _ in willitems if w]
                 willitems.sort(key=lambda x: x['modifiedAt'], reverse=True)
+                self.write({'status': 200, 'msg': 'OK', 'size': len(willitems), 'willitems': willitems})
+            else:
+                self.write({'status': 400, 'msg': 'The user is not exist'})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def get_willitems_with_receiver(self, data):
+        try:
+            user = self.find_user(data['sessionToken'])
+            receiver_id = data['receiverID']
+            if user:
+                user_willitems = user['willitems']
+                Q = [{'willitemID': w['willitemID'], 'sessionToken': data['sessionToken']}
+                     for w in user_willitems.itervalues()]
+                willitems = map(self._get_willitem, Q)
+                willitems = [w for w, _ in willitems if w]
+                willitems.sort(key=lambda x: x['modifiedAt'], reverse=True)
+                willitems = map(lambda x: self.filter_answers_by_answer_id(receiver_id, x), willitems)
+                willitems = [w for w in willitems if len(w['answers']) > 0]
                 self.write({'status': 200, 'msg': 'OK', 'size': len(willitems), 'willitems': willitems})
             else:
                 self.write({'status': 400, 'msg': 'The user is not exist'})

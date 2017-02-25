@@ -64,6 +64,10 @@
             "required": ["sessionToken"],
             "allowed": []
         },
+        "getWillItemsWithReceiver": {
+            "required": ["sessionToken", "receiverID"],
+            "allowed": []
+        },
         "getSessionTokenForReadOnly": {
             "required": ["readOnlyToken", "birthDay"],
             "allowed": []

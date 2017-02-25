@@ -241,10 +241,27 @@ class AppServerTest(unittest.TestCase):
         r_q2 = requests.post(url, data=json.dumps(data)).json()
         self.assertTrue(r_q2['status'] == 200)
 
+        data = {"text": u"가장 기억에 남는 여행은?"}
+        r_q3 = requests.post(url, data=json.dumps(data)).json()
+        self.assertTrue(r_q3['status'] == 200)
+
         data = {"userName": u"sjkim", "phoneNumber": u"010-1274-1352", "password": u"sjsj!", "birthDay": 49881200}
         url_create = self.url_root + 'createUser'
         r_user = requests.post(url_create, data=json.dumps(data)).json()
         self.assertTrue(r_user['status'] == 200)
+
+        # add receiver
+        url_add_receiver = self.url_root + 'addReceiver'
+        data_rcv1 = {"sessionToken": r_user['sessionToken'], "name": u"누렁이", "phoneNumber": u"011-1234-1233"}
+        r_rcv1 = requests.post(url_add_receiver, data=json.dumps(data_rcv1)).json()
+        self.assertTrue(r_rcv1['status'] == 200)
+
+        data_rcv2 = {"sessionToken": r_user['sessionToken'], "name": u"바둑이", "phoneNumber": u"010-1934-1233"}
+        r_rcv2 = requests.post(url_add_receiver, data=json.dumps(data_rcv2)).json()
+        self.assertTrue(r_rcv2['status'] == 200)
+
+        rcv1 = r_rcv1['receiverID']
+        rcv2 = r_rcv2['receiverID']
 
         data = {'sessionToken': r_user['sessionToken']}
         url_todayq = self.url_root + 'getTodaysQuestion'
@@ -261,6 +278,7 @@ class AppServerTest(unittest.TestCase):
                     'answerText': u'맨날 그래',
                     'mediaWidth': 120,
                     'mediaHeight': 80,
+                    'receivers': [rcv1, rcv2],
                     }
         r_create_ans = requests.post(url_create_ans, data=json.dumps(data_ans)).json()
         self.assertTrue(r_create_ans['status'] == 200)
@@ -271,6 +289,7 @@ class AppServerTest(unittest.TestCase):
         data_ans2 = {'sessionToken': r_user['sessionToken'],
                      'questionID': question_id,
                      'answerText': u'이게 무슨 질문이지',
+                    'receivers': [rcv1],
                      }
         r_create_ans2 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
         self.assertTrue(r_create_ans2['status'] == 200)
@@ -356,6 +375,37 @@ class AppServerTest(unittest.TestCase):
         data_get_willitems = {'sessionToken': '111111111111111111111111'}
         r_get_willitems = requests.post(url_get_willitems, data=json.dumps(data_get_willitems)).json()
         self.assertTrue(r_get_willitems['status'] == 400)
+
+        # get another question
+        time.sleep(1)
+        another_question_id = None
+        for r_q in [r_q1, r_q2, r_q3]:
+            if question_id != r_q['questionID']:
+                another_question_id = r_q['questionID']
+
+        url_create_ans = self.url_root + 'createAnswer'
+        data_ans2 = {'sessionToken': r_user['sessionToken'],
+                     'questionID': another_question_id,
+                     'answerText': u'아하하하',
+                     'receivers': [rcv1],
+                     }
+        r_create_ans_a1 = requests.post(url_create_ans, data=json.dumps(data_ans2)).json()
+        self.assertTrue(r_create_ans_a1['status'] == 200)
+
+        # check willitems_with_receiver
+        url_get_willitems_with_receiver = self.url_root + 'getWillItemsWithReceiver'
+        data_11 = {'sessionToken': r_user['sessionToken'], 'receiverID': rcv1}
+        r_11 = requests.post(url_get_willitems_with_receiver, data=json.dumps(data_11)).json()
+        self.assertTrue(r_11['status'] == 200)
+        self.assertTrue(len(r_11['willitems']) == 2)
+        self.assertTrue(len(r_11['willitems'][0]['answers']) == 1)
+        self.assertTrue(len(r_11['willitems'][1]['answers']) == 2)
+
+        data_12 = {'sessionToken': r_user['sessionToken'], 'receiverID': rcv2}
+        r_12 = requests.post(url_get_willitems_with_receiver, data=json.dumps(data_12)).json()
+        self.assertTrue(r_12['status'] == 200)
+        self.assertTrue(len(r_12['willitems']) == 1)
+        self.assertTrue(len(r_12['willitems'][0]['answers']) == 1)
 
     def test06_logout(self):
         '''
