@@ -349,7 +349,7 @@ class AppServerTest(unittest.TestCase):
         r_get_willitem2 = requests.post(url_get_willitem, data=json.dumps(data_get_willitem)).json()
         self.assertTrue(r_get_willitem2['status'] == 200)
         willitem2 = r_get_willitem2['willitem']
-        self.assertTrue(willitem2['size'] == 0)
+        self.assertTrue(willitem2['size'] == 1)
 
     def test06_logout(self):
         '''

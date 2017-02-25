@@ -353,10 +353,8 @@ class RequestHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def delete_answer(self, data):
         try:
-            user = DB.users.find_one({'_id': ObjectId(data['sessionToken'])})
-            print(user)
+            user = self.find_user(data['sessionToken'])
             willitem_id = user['willitems'][data['questionID']]['willitemID']
-            print(willitem_id)
             if willitem_id:
                 DB.items.find_one_and_update({'_id': willitem_id},
                                              {'$set': {'answers.%s.status' % (data['answerID']): 'deleted'},
