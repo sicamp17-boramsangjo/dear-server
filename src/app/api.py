@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
+import mimetypes
+import os
 import sys
 import time
+import uuid
 
+import magic
 import ujson as json
 
 from bson.objectid import ObjectId
@@ -16,8 +20,15 @@ from tornado.log import enable_pretty_logging
 
 enable_pretty_logging()
 
+STATIC_FS_ROOT = '/home/boram/static/'
+STATIC_URL_ROOT = 'http://indiweb08.cafe24.com:8888/'
+VALID_EXTS = {'images': {'.png', '.jpg', '.jpeg', '.gif', '.bmp'},
+              'videos': {'.qt', '.mov', '.mp4', '.mkv', '.avi'},
+              }
+
 
 class RequestHandler(tornado.web.RequestHandler):
+
     def initialize(self, logger, config_fname):
         self.logger = logger
         self.opt = json.load(open(config_fname))
@@ -35,8 +46,12 @@ class RequestHandler(tornado.web.RequestHandler):
             'createAnswer': self.create_answer,
             'getWillItem': self.get_willitem,
             'getWillItems': self.get_willitems,
+            'uploadImage': self.upload_image,
+            'uploadVideo': self.upload_video,
         }
         for k, f in self.post_book.iteritems():
+            if k.startswith('upload'):
+                continue
             self.post_book[k] = (f, set(self.opt['fields'][k]['required']), set(self.opt['fields'][k]['allowed']))
 
     @tornado.gen.coroutine
@@ -51,20 +66,27 @@ class RequestHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def post(self, opcode):
         try:
-            self.set_header('Content-Type', 'application/json')
-            handler, required_fields, allowed_fields = self.post_book.get(opcode, (None, None, None))
-            self.logger.info('Query: %s' % self.request.body)
-            data = json.loads(self.request.body)
-            if handler is None or required_fields is None or allowed_fields is None:
-                self.write_error(400, 'Invalid opcode: %s' % opcode)
-            else:
-                missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
-                if len(missing_fields) > 0:
-                    self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
-                elif len(not_allowed_fields) > 0:
-                    self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
+            if opcode.startswith('upload'):
+                handler = self.post_book.get(opcode, None)
+                if handler is None:
+                    self.write_error(400, 'Invalid opcode: %s' % opcode)
                 else:
-                    handler(data)
+                    handler()
+            else:
+                self.set_header('Content-Type', 'application/json')
+                handler, required_fields, allowed_fields = self.post_book.get(opcode, (None, None, None))
+                self.logger.info('Query: %s' % self.request.body)
+                data = json.loads(self.request.body)
+                if handler is None or required_fields is None or allowed_fields is None:
+                    self.write_error(400, 'Invalid opcode: %s' % opcode)
+                else:
+                    missing_fields, not_allowed_fields = self.check_fields(data, required_fields, allowed_fields)
+                    if len(missing_fields) > 0:
+                        self.write_error(400, 'Missing fields: %s' % ','.join(list(missing_fields)))
+                    elif len(not_allowed_fields) > 0:
+                        self.write_error(400, 'Not allowed fields: %s' % ','.join(list(not_allowed_fields)))
+                    else:
+                        handler(data)
         except Exception as e:
             self.write_error(500, 'Internal server error: %s' % str(e))
 
@@ -397,6 +419,44 @@ class RequestHandler(tornado.web.RequestHandler):
             self.finish()
         except Exception as e:
             self.write_error(500, str(e))
+
+    def select_ext(self, exts, data_type):
+        candidates = set(exts) & VALID_EXTS[data_type]
+        if len(candidates) == 0:
+            raise Exception('Failed to selecte extension: %s' % ','.join(exts))
+        else:
+            self.logger.info('ext candidates: %s' % ','.join(exts))
+            return list(candidates)[0]
+
+    def get_extension(self, fname, data_type):
+        mime_text = magic.from_buffer(open(fname).read(1024), mime=True)
+        exts = mimetypes.guess_all_extensions(mime_text)
+        return self.select_ext(exts, data_type)
+
+    @tornado.gen.coroutine
+    def _upload(self, data_type):
+        try:
+            cname = str(uuid.uuid4()) + '_' + str(uuid.uuid1())
+            fname = os.path.join(STATIC_FS_ROOT, data_type, cname)
+            with open(fname, 'w') as fout:
+                fout.write(self.request.body)
+            ext = self.get_extension(fname, data_type)
+            fname_with_ext = fname + ext
+            os.rename(fname, fname_with_ext)
+            url = STATIC_URL_ROOT + data_type + '/' + cname + ext
+            self.logger.info('uploaded: %s' % url)
+            self.write({'status': 200, 'msg': 'OK', 'url': url})
+            self.finish()
+        except Exception as e:
+            self.write_error(500, str(e))
+
+    @tornado.gen.coroutine
+    def upload_image(self):
+        self._upload('images')
+
+    @tornado.gen.coroutine
+    def upload_video(self):
+        self._upload('videos')
 
 
 if __name__ == "__main__":
