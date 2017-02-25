@@ -18,6 +18,8 @@ def delete_all_items_from_test_db(db_name='unittest_database'):
     print '%s items deleted from %s.items' % (int(result.deleted_count), db_name)
     result = db.questions.delete_many({})
     print '%s items deleted from %s.questions' % (int(result.deleted_count), db_name)
+    result = db.invitations.delete_many({})
+    print '%s items deleted from %s.invitations' % (int(result.deleted_count), db_name)
 
 
 def generate_answer_id(willitem_id, size):
@@ -381,3 +383,28 @@ class AppServerTest(unittest.TestCase):
         url_get_user_info = self.url_root + 'getUserInfo'
         r3 = requests.post(url_get_user_info, data=json.dumps(data2)).json()
         self.assertTrue(r3['status'] == 400)
+
+    def test07_readonly(self):
+        # insert question
+        url_add_question = self.url_root + 'addQuestion'
+        data0 = {"text": u"현실공간이 비현실적이거나 가상현실처럼 느껴진 적이 있나요?"}
+        r0 = requests.post(url_add_question, data=json.dumps(data0)).json()
+        self.assertTrue(r0['status'] == 200)
+
+        # create user
+        data1 = {"userName": u"hhcha", "phoneNumber": u"011-1234-1233", "password": u"hhhh!", "birthDay": 49881200}
+        url_create = self.url_root + 'createUser'
+        r1 = requests.post(url_create, data=json.dumps(data1)).json()
+        self.assertTrue(r1['status'] == 200)
+        self.assertTrue('readOnlyToken' in r1)
+
+        # get readonly session-key by readOnlyToken
+        data_ro = {"readOnlyToken": r1["readOnlyToken"], "birthDay": 49881200}
+        url_readonly = self.url_root + 'getSessionTokenForReadOnly'
+        r_ro = requests.post(url_readonly, data=json.dumps(data_ro)).json()
+        self.assertTrue(r_ro['status'] == 200)
+        self.assertTrue(r_ro['sessionToken'] == r1['sessionToken'])
+
+        data_ro2 = {"readOnlyToken": r1["readOnlyToken"], "birthDay": 49871200}
+        r_ro2 = requests.post(url_readonly, data=json.dumps(data_ro2)).json()
+        self.assertTrue(r_ro2['status'] == 400)

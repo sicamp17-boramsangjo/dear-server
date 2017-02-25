@@ -48,6 +48,7 @@ class RequestHandler(tornado.web.RequestHandler):
             'getWillItems': self.get_willitems,
             'uploadImage': self.upload_image,
             'uploadVideo': self.upload_video,
+            'getSessionTokenForReadOnly': self.get_sesseion_token_for_read_only,
         }
         for k, f in self.post_book.iteritems():
             if k.startswith('upload'):
@@ -129,6 +130,10 @@ class RequestHandler(tornado.web.RequestHandler):
         r = DB.questions.find_one({'_id': ObjectId(question_key)})
         return self.id_postprocessing(r, 'questionID') if r else None
 
+    def find_invitation(self, invitation_key):
+        r = DB.invitations.find_one({'_id': ObjectId(invitation_key)})
+        return self.id_postprocessing(r, 'invitationID') if r else None
+
     def get_random_question(self):
         # not random yet...
         r = DB.questions.find_one({})
@@ -169,25 +174,33 @@ class RequestHandler(tornado.web.RequestHandler):
                 if not todays_question:
                     self.write_error(400, 'Failed to get todays question')
                 else:
-                    record = {'userName': data['userName'],
-                              'phoneNumber': data['phoneNumber'],
-                              'password': data['password'],
-                              'birthDay': data['birthDay'],
-                              'deviceToken': '',
-                              'profileImageUrl': '',
-                              'pushDuration': self.opt['settings']['user']['pushDuration'],
-                              'willitems': {},
-                              'receivers': [],
-                              'lastLoginTime': now_ts,
-                              'todaysQuestion': {
-                                  'questionID': todays_question['questionID'],
-                                  'deliveredAt': now_ts
-                                  },
-                              'status': 'normal'
-                              }
-                    users = DB.users
-                    user_id = users.insert_one(record)
-                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id)})
+                    user_record = {'userName': data['userName'],
+                                   'phoneNumber': data['phoneNumber'],
+                                   'password': data['password'],
+                                   'birthDay': data['birthDay'],
+                                   'deviceToken': '',
+                                   'profileImageUrl': '',
+                                   'pushDuration': self.opt['settings']['user']['pushDuration'],
+                                   'willitems': {},
+                                   'receivers': [],
+                                   'lastLoginTime': now_ts,
+                                   'todaysQuestion': {
+                                       'questionID': todays_question['questionID'],
+                                       'deliveredAt': now_ts
+                                        },
+                                   'status': 'normal'
+                                   }
+                    user_id = DB.users.insert_one(user_record)
+                    read_only_record = {'userName': data['userName'],
+                                        'birthDay': data['birthDay'],
+                                        'sessionToken': str(user_id.inserted_id),
+                                        }
+                    read_only_id = DB.invitations.insert_one(read_only_record)
+                    DB.users.find_one_and_update({'_id': user_id.inserted_id},
+                                                 {'$set': {'readOnlyToken': str(read_only_id.inserted_id)}}
+                                                 )
+                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': str(user_id.inserted_id),
+                                'readOnlyToken': str(read_only_id.inserted_id)})
                     self.finish()
         except Exception as e:
             self.write_error(500, str(e))
@@ -457,6 +470,20 @@ class RequestHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def upload_video(self):
         self._upload('videos')
+
+    @tornado.gen.coroutine
+    def get_sesseion_token_for_read_only(self, data):
+        try:
+            invitation = self.find_invitation(data['readOnlyToken'])
+            if invitation:
+                if invitation['birthDay'] == data['birthDay']:
+                    self.write({'status': 200, 'msg': 'OK', 'sessionToken': invitation['sessionToken']})
+                else:
+                    self.write({'status': 400, 'msg': 'birthDay is not matched'})
+            else:
+                self.write({'status': 400, 'msg': 'Invalid readOnlyToken'})
+        except Exception as e:
+            self.write_error(500, str(e))
 
 
 if __name__ == "__main__":

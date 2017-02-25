@@ -51,6 +51,10 @@
         "getWillItems": {
             "required": ["sessionToken"],
             "allowed": []
+        },
+        "getSessionTokenForReadOnly": {
+            "required": ["readOnlyToken", "birthDay"],
+            "allowed": []
         }
     },
     "settings": {
