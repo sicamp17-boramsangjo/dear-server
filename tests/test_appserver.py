@@ -73,7 +73,7 @@ class AppServerTest(unittest.TestCase):
             for f in ['userName', 'password', 'phoneNumber', 'birthDay']:
                 self.assertTrue(ret['status'] == 200)
                 self.assertTrue(dd[f] == ret['user'][f])
-                self.assertTrue(ret['user']['status'] == "normal")
+            self.assertTrue(ret['user']['status'] == "normal")
 
         # duplicate phone number
         dupled_data = {"userName": u"artemis", "phoneNumber": u"010-1274-1352", "password": u"38fjfij1", "birthDay": 149881200}
